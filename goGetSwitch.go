@@ -1,21 +1,27 @@
 package main
 
 import (
+	"fmt"
+	"goGetSwitch/dbFunctions"
 	"goGetSwitch/getAndParseData"
+	"goGetSwitch/signal"
 	"log"
 	"sync"
 	"time"
 )
 
+// Можно использовать структуру для парсинга ответа от investing
 type investingResponse struct {
 	Page   int
 	Fruits []string
 }
 
-func dataGetterAndParser(url string, wg *sync.WaitGroup) {
+func dataGetterAndParser(baseUrl string, timeframe string, wg *sync.WaitGroup, channelForSendingSignalsArrays chan []signal.Signal) {
 	defer wg.Done()
 
-	getAndParseData.GetAndParseData(url)
+	newSignalsForThisTimeframe := getAndParseData.GetAndParseData(baseUrl, timeframe)
+
+	channelForSendingSignalsArrays <- newSignalsForThisTimeframe
 }
 
 func main() {
@@ -32,13 +38,32 @@ func main() {
 
 	timeframes := []string{"300", "900", "1800", "3600", "18000", "86400"}
 
+	channelForGettingSignalsArray := make(chan []signal.Signal)
+	var allNewSignals []signal.Signal
+
 	for _, timeframe := range timeframes {
 		wg.Add(1)
-		go dataGetterAndParser(baseUrl + timeframe, &wg)
+		go dataGetterAndParser(baseUrl, timeframe, &wg, channelForGettingSignalsArray)
 	}
 
-	// Ждём окончания работы всех горутин
+	// Получение данных из канала
+	// TODO: этот код не рассчитывает, что данные откуда-либо могут не вернуться.
+	//	Я думаю, это не совсем корректный способ получения данных
+	for i := 0; i < len(timeframes); i++ {
+		newSignals := <-channelForGettingSignalsArray
+		allNewSignals = append(allNewSignals, newSignals...)
+		fmt.Println("[While working] len(allNewSignals) = ", len(allNewSignals))
+	}
+
+	// Ждём окончания работы всех горутин (этот код написал ДО использования каналов). Возможно,
+	// этот код уже не нужен
 	wg.Wait()
+
+	fmt.Println("len(allNewSignals) = ", len(allNewSignals))
+
+	log.Println("Собираюсь позвать dbFunctions.WriteData")
+	dbFunctions.WriteData(allNewSignals)
+	log.Println("Закончил с вызовом dbFunctions.WriteData")
 
 	elapsed := time.Since(start)
 	log.Printf("Program took %s", elapsed)

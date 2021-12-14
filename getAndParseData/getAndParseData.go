@@ -1,10 +1,15 @@
 package getAndParseData
 
-import "fmt"
+import (
+	"goGetSwitch/signal"
+	"strconv"
+)
 
-func GetAndParseData(url string) string {
-	respBody := GetData(url)
-	maBuy := ParseData(respBody)
-	fmt.Println("Gonna return maBuy = ", maBuy)
-	return maBuy
+func GetAndParseData(baseUrl string, timeframe string) []signal.Signal {
+	respBody, unixTimestamp := GetData(baseUrl + timeframe)
+
+	timeframeInInt, _ := strconv.Atoi(timeframe)
+	newSignalsForTimeframe := ParseData(respBody, timeframeInInt, unixTimestamp)
+
+	return newSignalsForTimeframe
 }

@@ -30,7 +30,7 @@ func parsePair(data interface{}) signal.Signal {
 	return parsedSignal
 }
 
-func ParseData(respBody []byte) string {
+func ParseData(respBody []byte, timeframe int, unixTimestamp int64) []signal.Signal {
 	/*
 		Работа с JSON
 	*/
@@ -42,8 +42,13 @@ func ParseData(respBody []byte) string {
 	fmt.Println("\n\n dat:")
 	fmt.Println(dat)
 
+	var allNewSignalsForThisTimeframe []signal.Signal
+
 	for _, indice := range getIndices() {
 		newSignal := parsePair(dat[indice])
+		newSignal.Timeframe = timeframe
+		newSignal.UnixTimestamp = unixTimestamp
+		allNewSignalsForThisTimeframe = append(allNewSignalsForThisTimeframe, newSignal)
 		fmt.Println("newSignal data with comments: ", signal.SignalDataInOneStringWithComments(newSignal))
 	}
 
@@ -83,5 +88,5 @@ func ParseData(respBody []byte) string {
 
 	// Какие индексы вообще есть
 	// 1,2,3,5,7,9,10
-	return fmt.Sprintf("%f", "1")
+	return allNewSignalsForThisTimeframe
 }

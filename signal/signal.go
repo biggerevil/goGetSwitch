@@ -7,16 +7,18 @@ import (
 
 type Signal struct {
 	// Объявляю на новых строчках (а не в одну) для наглядности
-	MaBuy int
-	MaSell int
-	TiBuy int
-	TiSell int
+	MaBuy  int `bson:"MaBuy" json:"MaBuy"`
+	MaSell int `bson:"MaSell" json:"MaSell"`
+	TiBuy  int `bson:"TiBuy" json:"TiBuy"`
+	TiSell int `bson:"TiSell" json:"TiSell"`
 
-	Pairname string
-	CurrentPrice float64
+	Pairname      string  `bson:"Pairname" json:"Pairname"`
+	CurrentPrice  float64 `bson:"CurrentPrice" json:"CurrentPrice"`
+	Timeframe     int     `bson:"Timeframe" json:"Timeframe"`
+	UnixTimestamp int64   `bson:"UnixTimestamp" json:"UnixTimestamp"`
 }
 
-func SignalDataInOneString(signal Signal) (string) {
+func SignalDataInOneString(signal Signal) string {
 	delimiter := ", "
 	stringToReturn := signal.Pairname + delimiter +
 		strconv.Itoa(signal.MaBuy) + delimiter + strconv.Itoa(signal.MaSell) +
@@ -26,7 +28,7 @@ func SignalDataInOneString(signal Signal) (string) {
 	return stringToReturn
 }
 
-func SignalDataInOneStringWithComments(signal Signal) (string) {
+func SignalDataInOneStringWithComments(signal Signal) string {
 	stringToReturn := "Pairname: " + signal.Pairname +
 		", MaBuy: " + strconv.Itoa(signal.MaBuy) + ", MaSell: " + strconv.Itoa(signal.MaSell) +
 		", TiBuy: " + strconv.Itoa(signal.TiBuy) + ", TiSell: " + strconv.Itoa(signal.TiSell) +
