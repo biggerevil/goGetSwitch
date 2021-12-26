@@ -12,27 +12,25 @@ type Signal struct {
 	TiBuy  int `bson:"TiBuy" json:"TiBuy"`
 	TiSell int `bson:"TiSell" json:"TiSell"`
 
-	Pairname      string  `bson:"Pairname" json:"Pairname"`
-	CurrentPrice  float64 `bson:"CurrentPrice" json:"CurrentPrice"`
-	Timeframe     int     `bson:"Timeframe" json:"Timeframe"`
-	UnixTimestamp int64   `bson:"UnixTimestamp" json:"UnixTimestamp"`
-}
+	Pairname           string  `bson:"Pairname" json:"Pairname"`
+	CurrentPrice       float64 `bson:"CurrentPrice" json:"CurrentPrice"`
+	Timeframe          int     `bson:"Timeframe" json:"Timeframe"`
+	StartUnixTimestamp int64   `bson:"StartUnixTimestamp" json:"StartUnixTimestamp"`
+	EndUnixTimestamp   int64   `bson:"EndUnixTimestamp" json:"EndUnixTimestamp"`
 
-func SignalDataInOneString(signal Signal) string {
-	delimiter := ", "
-	stringToReturn := signal.Pairname + delimiter +
-		strconv.Itoa(signal.MaBuy) + delimiter + strconv.Itoa(signal.MaSell) +
-		strconv.Itoa(signal.TiBuy) + delimiter + strconv.Itoa(signal.TiSell) +
-		delimiter + fmt.Sprintf("%f", signal.CurrentPrice)
-
-	return stringToReturn
+	// Служебные поля
+	ID string `bson:"_id" json:"_id"`
 }
 
 func SignalDataInOneStringWithComments(signal Signal) string {
-	stringToReturn := "Pairname: " + signal.Pairname +
-		", MaBuy: " + strconv.Itoa(signal.MaBuy) + ", MaSell: " + strconv.Itoa(signal.MaSell) +
-		", TiBuy: " + strconv.Itoa(signal.TiBuy) + ", TiSell: " + strconv.Itoa(signal.TiSell) +
-		", CurrentPrice: " + fmt.Sprintf("%f", signal.CurrentPrice)
+	stringToReturn := "ID: " + signal.ID +
+		" , Pairname: " + signal.Pairname +
+		" , MaBuy: " + strconv.Itoa(signal.MaBuy) + ", MaSell: " + strconv.Itoa(signal.MaSell) +
+		" , TiBuy: " + strconv.Itoa(signal.TiBuy) + ", TiSell: " + strconv.Itoa(signal.TiSell) +
+		" , CurrentPrice: " + fmt.Sprintf("%f", signal.CurrentPrice) +
+		" , StartUnixTimestamp: " + fmt.Sprintf("%v", signal.StartUnixTimestamp) +
+		" , EndUnixTimestamp: " + fmt.Sprintf("%v", signal.EndUnixTimestamp) +
+		" , Timeframe: " + fmt.Sprintf("%v", signal.Timeframe)
 
 	return stringToReturn
 }

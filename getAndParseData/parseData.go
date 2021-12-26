@@ -47,7 +47,8 @@ func ParseData(respBody []byte, timeframe int, unixTimestamp int64) []signal.Sig
 	for _, indice := range getIndices() {
 		newSignal := parsePair(dat[indice])
 		newSignal.Timeframe = timeframe
-		newSignal.UnixTimestamp = unixTimestamp
+		newSignal.StartUnixTimestamp = unixTimestamp
+		newSignal.EndUnixTimestamp = unixTimestamp + int64(timeframe)
 		allNewSignalsForThisTimeframe = append(allNewSignalsForThisTimeframe, newSignal)
 		fmt.Println("newSignal data with comments: ", signal.SignalDataInOneStringWithComments(newSignal))
 	}
