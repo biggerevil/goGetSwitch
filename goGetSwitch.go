@@ -16,10 +16,10 @@ type investingResponse struct {
 	Fruits []string
 }
 
-func dataGetterAndParser(baseUrl string, timeframe string, wg *sync.WaitGroup, channelForSendingSignalsArrays chan []signal.Signal) {
+func dataGetterAndParser(baseUrl string, timeframe string, unixTimestamp int64, wg *sync.WaitGroup, channelForSendingSignalsArrays chan []signal.Signal) {
 	defer wg.Done()
 
-	newSignalsForThisTimeframe := getAndParseData.GetAndParseData(baseUrl, timeframe)
+	newSignalsForThisTimeframe := getAndParseData.GetAndParseData(baseUrl, timeframe, unixTimestamp)
 
 	channelForSendingSignalsArrays <- newSignalsForThisTimeframe
 }
@@ -38,12 +38,16 @@ func main() {
 
 	timeframes := []string{"300", "900", "1800", "3600", "18000", "86400"}
 
+	// Определяю единый timestamp для всех сигналов, чтобы не было сигналов с timestamp, отличающихся на
+	// несколько секунд
+	unixTimestamp := time.Now().Unix()
+
 	channelForGettingSignalsArray := make(chan []signal.Signal)
 	var allNewSignals []signal.Signal
 
 	for _, timeframe := range timeframes {
 		wg.Add(1)
-		go dataGetterAndParser(baseUrl, timeframe, &wg, channelForGettingSignalsArray)
+		go dataGetterAndParser(baseUrl, timeframe, unixTimestamp, &wg, channelForGettingSignalsArray)
 	}
 
 	// Получение данных из канала

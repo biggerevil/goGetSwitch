@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
 )
 
-func GetData(url string) ([]byte, int64) {
+func GetData(url string) []byte {
 	// Create client
 	client := &http.Client{}
 
@@ -20,9 +19,6 @@ func GetData(url string) ([]byte, int64) {
 
 	// Fetch Request
 	resp, err := client.Do(req)
-	// Определяем время "делания" запроса, чтобы потом это время записать в БД.
-	// Определяем в формате Unix Timestamp
-	unixTimestamp := time.Now().Unix()
 
 	if err != nil {
 		fmt.Println("Failure : ", err)
@@ -33,5 +29,5 @@ func GetData(url string) ([]byte, int64) {
 
 	fmt.Println("string(respBody) = ", string(respBody))
 
-	return respBody, unixTimestamp
+	return respBody
 }
