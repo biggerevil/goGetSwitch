@@ -21,6 +21,8 @@ func dataGetterAndParser(baseUrl string, timeframe string, unixTimestamp int64, 
 
 	newSignalsForThisTimeframe := getAndParseData.GetAndParseData(baseUrl, timeframe, unixTimestamp)
 
+	// TODO: при наличии ошибки я могу возвращать эту ошибку (и впоследствии выводить её и продолжать работу)
+	// 	вместо сигналов. Тогда мой код станет более надёжным перед лицом ошибок
 	channelForSendingSignalsArrays <- newSignalsForThisTimeframe
 }
 
@@ -40,14 +42,14 @@ func main() {
 
 	// Определяю единый timestamp для всех сигналов, чтобы не было сигналов с timestamp, отличающихся на
 	// несколько секунд
-	unixTimestamp := time.Now().Unix()
+	currentUnixTimestamp := time.Now().Unix()
 
 	channelForGettingSignalsArray := make(chan []signal.Signal)
 	var allNewSignals []signal.Signal
 
 	for _, timeframe := range timeframes {
 		wg.Add(1)
-		go dataGetterAndParser(baseUrl, timeframe, unixTimestamp, &wg, channelForGettingSignalsArray)
+		go dataGetterAndParser(baseUrl, timeframe, currentUnixTimestamp, &wg, channelForGettingSignalsArray)
 	}
 
 	// Получение данных из канала
@@ -69,14 +71,10 @@ func main() {
 	dbFunctions.WriteData(allNewSignals)
 	log.Println("Закончил с вызовом dbFunctions.WriteData")
 
+	// Добавляем к "заканчивающимся" ставкам конечную цену
+	// И информацию, больше ли конечная цена, чем начальная
+	dbFunctions.UpdateEndingStakes(currentUnixTimestamp, allNewSignals)
+
 	elapsed := time.Since(start)
 	log.Printf("Program took %s", elapsed)
-
-	// TODO: для добавления финальной цены можно делать поиск по БД по полю EndUnixTimestamp, передавая в него
-	// 	ТЕКУЩИЙ timestamp. И добавлять в таким сигналам finalPrice и finalPriceIsMoreThanInitial. Для более удобной
-	//	 работы можно завести отдельный, не знаю, массив, в котором будут храниться цены всех пар (всего 7-10 штук,
-	//	 сколько там пар), а браться этот массив будет из, не знаю, массива с сигналами, например. И для добавления к
-	//	 сигналам финальной будут браться данные из этого массива (так, я думаю, будет удобнее, чем для каждого сигнала
-	//	 искать финальную цену среди всего массива сигналов, так как будет много прогонов).
-	//	И эту функцию можно запускать в районе конца программы, чтобы после работы GetWinrate и SwitchAlgorithm
 }
