@@ -38,7 +38,7 @@ func UpdateEndingStakes(currentUnixTimestamp int64, allSignals []signal.Signal) 
 	// ====1=========================================================
 
 	// ====2=========================================================
-	// Отбираем все сигналы, где UnixTimestamp == текущий timestamp
+	// Отбираем все сигналы, где EndUnixTimestamp == текущий timestamp
 	log.Println("[UpdateEndingStakes] Отбираем старые сигналы, которые сейчас заканчиваются")
 	filter := bson.D{{"EndUnixTimestamp", currentUnixTimestamp}}
 	findOptions := options.Find()

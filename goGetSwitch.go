@@ -38,6 +38,8 @@ func main() {
 	//respBody := getAndParseData.GetData(url)
 	//maBuy := getAndParseData.ParseData(respBody)
 
+	// TODO: добавить timeframe на 2 часа (то есть 7200 по идее) и проверить, что всё
+	// 	корректно работает
 	timeframes := []string{"300", "900", "1800", "3600", "18000", "86400"}
 
 	// Определяю единый timestamp для всех сигналов, чтобы не было сигналов с timestamp, отличающихся на
