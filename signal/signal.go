@@ -2,6 +2,7 @@ package signal
 
 import (
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"strconv"
 )
 
@@ -19,12 +20,21 @@ type Signal struct {
 	EndUnixTimestamp   int64   `bson:"EndUnixTimestamp" json:"EndUnixTimestamp"`
 
 	// Служебные поля
-	ID string `bson:"_id" json:"_id"`
+	// По поводу omitempty см. комментарий чуть ниже
+	ID primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
+	/*
+		По поводу omitempty:
+
+		The "omitempty" option specifies that the field should be omitted from the encoding if the field has an empty
+		value, defined as false, 0, a nil pointer, a nil interface value, and any empty array, slice, map, or string.
+		Чуть подробнее - https://stackoverflow.com/a/49043598/8604912
+	*/
 }
 
 func SignalDataInOneStringWithComments(signal Signal) string {
-	stringToReturn := "ID: " + signal.ID +
-		" , Pairname: " + signal.Pairname +
+	stringToReturn := "Pairname: " + signal.Pairname +
+		//stringToReturn := "ID: " + signal.ID.String() +
+		//	" , Pairname: " + signal.Pairname +
 		" , MaBuy: " + strconv.Itoa(signal.MaBuy) + ", MaSell: " + strconv.Itoa(signal.MaSell) +
 		" , TiBuy: " + strconv.Itoa(signal.TiBuy) + ", TiSell: " + strconv.Itoa(signal.TiSell) +
 		" , CurrentPrice: " + fmt.Sprintf("%f", signal.CurrentPrice) +
