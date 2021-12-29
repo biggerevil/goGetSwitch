@@ -57,9 +57,6 @@ func UpdateEndingStakes(currentUnixTimestamp int64, allSignals []signal.Signal) 
 
 	// Итерируемся по каждому сигналу, у которого UnixTimestamp == текущий timestamp
 	for cur.Next(context.TODO()) {
-		// Хочу проверить, что это за ID (айди ли это сигнала, потому что я)
-		fmt.Println("[UpdateEndingStakes] cur.ID() = ", cur.ID())
-
 		// Достаём сигнал
 		var oldSignal signal.Signal
 		err := cur.Decode(&oldSignal)
