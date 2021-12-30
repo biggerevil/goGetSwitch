@@ -1,6 +1,6 @@
 # goGetSwitch
 
-## Дата обновления: 13 декабря 2021, 22:00
+## Дата обновления: 30 декабря 2021
 
 ### Настройка
 В качестве БД на данный момент планирую использовать **mongodb**.
@@ -10,6 +10,47 @@
 apt install mongodb
 systemctl enable mongodb.service
 systemctl status mongodb.service
+```
+
+Содержимое ```/etc/systemd/system/goGetSwitch.service```:
+```
+[Unit]
+Description = "Bot"
+After = network.target
+
+[Service]
+ExecStart = /root/goGetSwitch/executables/goGetSwitch
+# Под root'ом запускать, конечно, не круто, но на данный момент
+# на сервере ничего, в общем-то, нет
+User=root
+WorkingDirectory = /root/
+TimeoutSec=40s
+
+[Install]
+WantedBy = multi-user.target
+```
+
+Содержимое ```/etc/systemd/system/goGetSwitch.timer```:
+```
+[Install]
+WantedBy=default.target
+
+[Unit]
+Description=Run getW every minute
+
+[Timer]
+# Start minutely on all days except weekend
+OnCalendar=Mon..Fri *-*-* *:*:00
+AccuracySec=1us
+```
+
+Включение сервисов (systemctl):
+```
+systemctl enable goGetSwitch.service
+systemctl enable goGetSwitch.timer
+systemctl start goGetSwitch.timer
+systemctl status goGetSwitch.service
+systemctl status goGetSwitch.timer
 ```
 
 Установка Go:
