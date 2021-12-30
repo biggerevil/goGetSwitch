@@ -12,6 +12,13 @@ systemctl enable mongodb.service
 systemctl status mongodb.service
 ```
 
+Установка Go:
+```
+sudo add-apt-repository ppa:longsleep/golang-backports
+sudo apt -y install golang
+go version
+```
+
 ### Идея:
 Программа, которая будет скачивать и анализировать данные с рынка.
 Затем при необходимости (при соответствии выбранной автоматически комбинации)
