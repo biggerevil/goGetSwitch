@@ -15,16 +15,17 @@ func main() {
 	fmt.Println("Hello there")
 
 	// Генерируем комбинации
-	severalCombinations, err := producerCode.GeneratePowersetWithinBorders(0, 5)
+	severalCombinations, err := producerCode.GeneratePowersetWithinBorders(0, 2)
 	if err != nil {
 		log.Fatalln("err = ", err)
 	}
 
+	collection := dbFunctions.ConnectToDB()
+
 	// Просто выводим сгенерированные комбинации
 	for _, combination := range severalCombinations {
 		fmt.Println("combination.Conditions() = ", combination.Conditions)
+		dbFunctions.GetCombinationStats(combination, collection)
 	}
 
-	collection := dbFunctions.ConnectToDB()
-	dbFunctions.GetCombinationStats(severalCombinations[2], collection)
 }

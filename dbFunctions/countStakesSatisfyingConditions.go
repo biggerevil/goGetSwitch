@@ -33,19 +33,30 @@ func ConnectToDB() *mongo.Collection {
 }
 
 func GetCombinationStats(combination producerCode.Combination, collection *mongo.Collection) {
-	columnNameOfFirstCondition := combination.Conditions[0].ColumnName
-	valueOfFirstCondition := combination.Conditions[0].Value
+	// CORRECT in its own way. Just doesn't enough, because only one timeframe
+	//filter := bson.M{
+	//	"$and": []bson.M{
+	//		bson.M{"$or": []bson.M{
+	//			bson.M{"Pairname": "EUR/USD"},
+	//			bson.M{"Pairname": "EUR/JPY"},
+	//		}},
+	//		{"Timeframe": 900},
+	//	}}
 
-	//filter := bson.D{{columnNameOfFirstCondition, valueOfFirstCondition}}
+	// Запрос для mongoshell с такими же критериями, как в этом фильтре:
+	// db.stakes.find({$and: [{$or : [{"Pairname":"EUR/JPY"},{"Pairname":"EUR/USD"}]},{$or : [{"Timeframe":900}]}] }).count()
 	filter := bson.M{
 		"$and": []bson.M{
-			{"Pairname": "EUR/JPY"},
-			{"Timeframe": 300},
-		},
-	}
+			bson.M{"$or": []bson.M{
+				bson.M{"Pairname": "EUR/USD"},
+				bson.M{"Pairname": "EUR/JPY"},
+			}},
+			bson.M{"$or": []bson.M{
+				bson.M{"Timeframe": 300},
+				bson.M{"Timeframe": 900},
+			}},
+		}}
 
-	fmt.Println("columnNameOfFirstCondition = ", columnNameOfFirstCondition)
-	fmt.Println("valueOfFirstCondition = ", valueOfFirstCondition)
 	fmt.Println("filter = ", filter)
 
 	// Запрос без фильтров (при нежелании использовать какой-либо фильтр надо передавать
