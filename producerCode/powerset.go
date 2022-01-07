@@ -16,12 +16,13 @@ type Combination struct {
 }
 
 var conditions = []Condition{
-	Condition{"Pairname", "USD/JPY"},
+	Condition{"Pairname", "AUD/USD"},
+	Condition{"Pairname", "EUR/CHF"},
 	Condition{"Pairname", "EUR/JPY"},
-	Condition{"Pairname", "USD/EUR"},
+	Condition{"Pairname", "EUR/USD"},
+	Condition{"Pairname", "GBP/USD"},
 	Condition{"Pairname", "USD/CAD"},
-	Condition{"Pairname", "USD/NZD"},
-	Condition{"Pairname", "EUR/NZD"},
+	Condition{"Pairname", "USD/JPY"},
 	Condition{"Timeframe", "300"},
 	Condition{"Timeframe", "900"},
 	Condition{"Timeframe", "1800"},
