@@ -15,8 +15,7 @@ func main() {
 	fmt.Println("Hello there")
 
 	// Генерируем комбинации
-	useOneCombinationNumber := 200
-	severalCombinations, err := producerCode.GeneratePowersetWithinBorders(useOneCombinationNumber, useOneCombinationNumber)
+	severalCombinations, err := producerCode.GeneratePowersetWithinBorders(0, 5)
 	if err != nil {
 		log.Fatalln("err = ", err)
 	}

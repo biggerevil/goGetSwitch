@@ -87,13 +87,17 @@ func GetCombinationStats(combination producerCode.Combination, collection *mongo
 		log.Fatalln("err = ", err)
 	}
 
-	filterEndPriceMoreThanInitial := bson.M{
-		"$and": []bson.M{
-			{"Pairname": "EUR/JPY"},
-			{"Timeframe": 300},
-			{"endPriceMoreThanInitial": 1},
-		},
-	}
+	//filterEndPriceMoreThanInitial := bson.M{
+	//	"$and": []bson.M{
+	//		{"Pairname": "EUR/JPY"},
+	//		{"Timeframe": 300},
+	//		{"endPriceMoreThanInitial": 1},
+	//	},
+	//}
+
+	filterEndPriceMoreThanInitial := filter
+	filterEndPriceMoreThanInitial["endPriceMoreThanInitial"] = 1
+
 	stakesWhereEndPriceMoreThanInitialCount, err := collection.CountDocuments(context.TODO(), filterEndPriceMoreThanInitial)
 	if err != nil {
 		log.Fatalln("err = ", err)
@@ -109,8 +113,8 @@ func makeFilter(combination producerCode.Combination) bson.M {
 	pairnames := getPairnamesFromCombination(combination)
 	timeframes := getTimeframesFromCombination(combination)
 
-	fmt.Println("[makeFilter] pairnames = ", pairnames)
-	fmt.Println("[makeFilter] timeframes = ", timeframes)
+	//fmt.Println("[makeFilter] pairnames = ", pairnames)
+	//fmt.Println("[makeFilter] timeframes = ", timeframes)
 
 	filter := bson.M{
 		//"Pairname":  bson.M{"$in": pairnames},
