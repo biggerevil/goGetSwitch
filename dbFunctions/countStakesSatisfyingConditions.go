@@ -45,17 +45,32 @@ func GetCombinationStats(combination producerCode.Combination, collection *mongo
 
 	// Запрос для mongoshell с такими же критериями, как в этом фильтре:
 	// db.stakes.find({$and: [{$or : [{"Pairname":"EUR/JPY"},{"Pairname":"EUR/USD"}]},{$or : [{"Timeframe":900}]}] }).count()
+	//filter := bson.M{
+	//	"$and": []bson.M{
+	//		bson.M{"$or": []bson.M{
+	//			bson.M{"Pairname": "EUR/USD"},
+	//			bson.M{"Pairname": "EUR/JPY"},
+	//		}},
+	//		bson.M{"$or": []bson.M{
+	//			bson.M{"Timeframe": 300},
+	//			bson.M{"Timeframe": 900},
+	//		}},
+	//	}}
+
+	var pairnameArray []string
+	pairnameArray = append(pairnameArray, "EUR/JPY")
+	pairnameArray = append(pairnameArray, "EUR/USD")
+	//pairnameArray = append(pairnameArray, "USD/JPY")
+
+	var timeframeArray []int
+	timeframeArray = append(timeframeArray, 300)
+	//timeframeArray = append(timeframeArray, 900)
+	//timeframeArray = append(timeframeArray, 1800)
+
 	filter := bson.M{
-		"$and": []bson.M{
-			bson.M{"$or": []bson.M{
-				bson.M{"Pairname": "EUR/USD"},
-				bson.M{"Pairname": "EUR/JPY"},
-			}},
-			bson.M{"$or": []bson.M{
-				bson.M{"Timeframe": 300},
-				bson.M{"Timeframe": 900},
-			}},
-		}}
+		"Pairname":  bson.M{"$in": pairnameArray},
+		"Timeframe": bson.M{"$in": timeframeArray},
+	}
 
 	fmt.Println("filter = ", filter)
 
