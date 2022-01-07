@@ -15,6 +15,9 @@ type Combination struct {
 	Conditions []Condition `json:"conditions"`
 }
 
+// TODO: может быть, в качестве проверки ставок в какое-либо применять start(и/или end)UnixTimestamp в диапазоне от
+// 	4 до 7 (условно, это для утра. Но числа могут быть и другие), а выяснять это при помощи
+// 	деления start(и/или end)UnixTimestamp с остатком (то есть оператор %) на 24?
 var conditions = []Condition{
 	Condition{"Pairname", "AUD/USD"},
 	Condition{"Pairname", "EUR/CHF"},
