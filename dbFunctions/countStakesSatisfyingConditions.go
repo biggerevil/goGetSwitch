@@ -33,7 +33,7 @@ func ConnectToDB() *mongo.Collection {
 	return collection
 }
 
-func GetCombinationStats(combination producerCode.Combination, collection *mongo.Collection) {
+func GetCombinationStats(combination producerCode.Combination, collection *mongo.Collection) map[string]interface{} {
 	// CORRECT in its own way. Just doesn't enough, because only one timeframe
 	//filter := bson.M{
 	//	"$and": []bson.M{
@@ -107,6 +107,14 @@ func GetCombinationStats(combination producerCode.Combination, collection *mongo
 	fmt.Println("stakesWhereEndPriceMoreThanInitialCount = ", stakesWhereEndPriceMoreThanInitialCount)
 	percentOfStakesWhereEndPriceMoreThanInitial := (float64(stakesWhereEndPriceMoreThanInitialCount) / float64(stakesCount)) * 100
 	fmt.Printf("priceMore / allStakes = %.1f\n", percentOfStakesWhereEndPriceMoreThanInitial)
+
+	stats := make(map[string]interface{})
+	stats["Combination"] = combination
+	stats["Stakes at all"] = stakesCount
+	stats["Stakes with end price more than initial"] = stakesWhereEndPriceMoreThanInitialCount
+	stats["Percent of stakes with end price more than initial"] = fmt.Sprintf("%.2f", percentOfStakesWhereEndPriceMoreThanInitial)
+
+	return stats
 }
 
 func makeFilter(combination producerCode.Combination) bson.M {

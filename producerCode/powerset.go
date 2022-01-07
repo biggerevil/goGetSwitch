@@ -3,6 +3,7 @@ package producerCode
 import (
 	"errors"
 	"fmt"
+	"log"
 	"math"
 )
 
@@ -42,9 +43,11 @@ func GeneratePowersetWithinBorders(lowerBorder int, upperBorder int) ([]Combinat
 	fmt.Println("float64(len(conditions)) - 1 = ", float64(len(conditions))-1)
 	fmt.Println("math.Pow(2, float64(len(conditions))) - 1 = ", math.Pow(2, float64(len(conditions)))-1)
 	fmt.Println("maxUpperBorder = ", maxUpperBorder)
+	fmt.Println("[GeneratePowersetWithinBorders] lowerBorder = ", lowerBorder, ", upperBorder = ", upperBorder)
 
 	if upperBorder > maxUpperBorder {
 		// Возвращаем ошибку, если переданный upperBorder не превышает допустимое значение
+		log.Println("[Error] upperBorder = ", upperBorder, ", and lowerBorder = ", lowerBorder)
 		return nil, errors.New("error - passed upperBorder > than maxUpperBorder")
 	}
 
