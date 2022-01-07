@@ -25,7 +25,8 @@ func main() {
 	// Просто выводим сгенерированные комбинации
 	for _, combination := range severalCombinations {
 		fmt.Println("combination.Conditions() = ", combination.Conditions)
-		dbFunctions.GetCombinationStats(combination, collection)
+		stats := dbFunctions.GetCombinationStats(combination, collection)
+		fmt.Println("stats: ", stats)
 	}
 
 }
