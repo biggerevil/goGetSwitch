@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"goGetSwitch/producerCode"
 	"log"
+	"strconv"
 )
 
 func ConnectToDB() *mongo.Collection {
@@ -67,12 +68,16 @@ func GetCombinationStats(combination producerCode.Combination, collection *mongo
 	//timeframeArray = append(timeframeArray, 900)
 	//timeframeArray = append(timeframeArray, 1800)
 
-	filter := bson.M{
-		"Pairname":  bson.M{"$in": pairnameArray},
-		"Timeframe": bson.M{"$in": timeframeArray},
-	}
+	//filter := bson.M{
+	//	"Pairname":  bson.M{"$in": pairnameArray},
+	//	"Timeframe": bson.M{"$in": timeframeArray},
+	//}
+
+	filter := makeFilter(combination)
 
 	fmt.Println("filter = ", filter)
+
+	makeFilter(combination)
 
 	// Запрос без фильтров (при нежелании использовать какой-либо фильтр надо передавать
 	// bson.D{{}}, а не nil, иначе будет ошибка)
@@ -98,4 +103,51 @@ func GetCombinationStats(combination producerCode.Combination, collection *mongo
 	fmt.Println("stakesWhereEndPriceMoreThanInitialCount = ", stakesWhereEndPriceMoreThanInitialCount)
 	percentOfStakesWhereEndPriceMoreThanInitial := (float64(stakesWhereEndPriceMoreThanInitialCount) / float64(stakesCount)) * 100
 	fmt.Printf("priceMore / allStakes = %.1f\n", percentOfStakesWhereEndPriceMoreThanInitial)
+}
+
+func makeFilter(combination producerCode.Combination) bson.M {
+	pairnames := getPairnamesFromCombination(combination)
+	timeframes := getTimeframesFromCombination(combination)
+
+	fmt.Println("[makeFilter] pairnames = ", pairnames)
+	fmt.Println("[makeFilter] timeframes = ", timeframes)
+
+	filter := bson.M{
+		//"Pairname":  bson.M{"$in": pairnames},
+		//"Timeframe": bson.M{"$in": timeframes},
+	}
+
+	if len(pairnames) != 0 {
+		filter["Pairname"] = bson.M{"$in": pairnames}
+	}
+
+	if len(timeframes) != 0 {
+		filter["Timeframe"] = bson.M{"$in": timeframes}
+	}
+
+	return filter
+}
+
+func getPairnamesFromCombination(combination producerCode.Combination) []string {
+	var pairnames []string
+	for _, condition := range combination.Conditions {
+		if condition.ColumnName == "Pairname" {
+			pairnames = append(pairnames, condition.Value)
+		}
+	}
+	return pairnames
+}
+
+func getTimeframesFromCombination(combination producerCode.Combination) []int {
+	var timeframes []int
+	for _, condition := range combination.Conditions {
+		if condition.ColumnName == "Timeframe" {
+			// Конвертируем в int, так как Timeframe в БД хранится как числовое значение, и в фильтре
+			// тоже должно быть числовое значение
+			valueAsInt, _ := strconv.Atoi(condition.Value)
+
+			timeframes = append(timeframes, valueAsInt)
+		}
+	}
+	return timeframes
 }
