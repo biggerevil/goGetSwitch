@@ -37,7 +37,7 @@ sudo apt -y install golang
 go version
 ```
 
-#### Настройка GoLand
+#### Настройка GoLand (cкриншоты)
 
 [New ssh target](imagesForReadme/ssh_target.png)
 
