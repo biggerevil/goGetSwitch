@@ -3,13 +3,38 @@
 ## Дата обновления: 30 декабря 2021
 
 ### Настройка
+
+#### Общая настройка
+
+Скачать с моего GitHub скрипт для настройки vps. Загнать его в файл ~/script.sh. Затем 
+(и на моменте с вопросом про версию ssh выбрать keep local):
+```
+bash script.sh
+```
+
+Затем установить zsh и ohmyzsh:
+```
+apt -y install zsh
+sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+```
+
+**(Опциональная тема)** Можно сменить тему oh-my-zsh, список тем можно 
+посмотреть здесь - https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
+
 В качестве БД на данный момент планирую использовать **mongodb**.
 <br>
 Необходимые команды для первоначальной настройки mongodb (установка и включение "автозапуска" у mongodb-сервиса):
 ```
-apt install mongodb
+apt -y install mongodb
 systemctl enable mongodb.service
 systemctl status mongodb.service
+```
+
+Установка Go (после add-apt-repostory надо будет нажать enter):
+```
+sudo add-apt-repository ppa:longsleep/golang-backports
+sudo apt -y install golang
+go version
 ```
 
 Содержимое ```/etc/systemd/system/goGetSwitch.service```:
@@ -51,13 +76,6 @@ systemctl enable goGetSwitch.timer
 systemctl start goGetSwitch.timer
 systemctl status goGetSwitch.service
 systemctl status goGetSwitch.timer
-```
-
-Установка Go:
-```
-sudo add-apt-repository ppa:longsleep/golang-backports
-sudo apt -y install golang
-go version
 ```
 
 ### Идея:
