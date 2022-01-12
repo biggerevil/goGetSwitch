@@ -37,6 +37,14 @@ sudo apt -y install golang
 go version
 ```
 
+#### Настройка GoLand
+
+[New ssh target](imagesForReadme/ssh_target.png)
+
+[New Run/Debug configuration](imagesForReadme/run_debug_configuration.png)
+
+#### Настройка сервисов systemctl для проекта
+
 Содержимое ```/etc/systemd/system/goGetSwitch.service```:
 ```
 [Unit]
