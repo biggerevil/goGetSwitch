@@ -59,16 +59,6 @@ func GetCombinationStats(combination producerCode.Combination, collection *mongo
 	//		}},
 	//	}}
 
-	var pairnameArray []string
-	pairnameArray = append(pairnameArray, "EUR/JPY")
-	pairnameArray = append(pairnameArray, "EUR/USD")
-	//pairnameArray = append(pairnameArray, "USD/JPY")
-
-	var timeframeArray []int
-	timeframeArray = append(timeframeArray, 300)
-	//timeframeArray = append(timeframeArray, 900)
-	//timeframeArray = append(timeframeArray, 1800)
-
 	//filter := bson.M{
 	//	"Pairname":  bson.M{"$in": pairnameArray},
 	//	"Timeframe": bson.M{"$in": timeframeArray},
