@@ -73,7 +73,7 @@ func topCombinationsWithinBorders(collection *mongo.Collection, lowerBorder int,
 					Смысл выражения ниже в том, чтобы можно было понять, что, например, 10% винрейта лучше, чем 60%
 					(так как если переворачивать ставки с 10% винрейтом, то мы получаем винрейт 90%)
 				*/
-				return math.Abs(fifty-firstValue) < math.Abs(fifty-secondValue)
+				return math.Abs(fifty-firstValue) > math.Abs(fifty-secondValue)
 			})
 
 			if len(topCombinationsStatsWithinPassedBorders) > 20 {
