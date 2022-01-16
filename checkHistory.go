@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"go.mongodb.org/mongo-driver/mongo"
 	"goGetSwitch/dbFunctions"
 	"goGetSwitch/stats"
 	"log"
@@ -38,19 +39,14 @@ import "goGetSwitch/producerCode"
 	   выводить)
 */
 
-func main() {
-	start := time.Now()
-
+func topCombinationsWithinBorders(collection *mongo.Collection, lowerBorder int, upperBorder int, channelForSendingTopCombinationStats chan []stats.Stats) {
 	// Генерируем комбинации
-	severalCombinations, err := producerCode.GeneratePowersetWithinBorders(0, 16382)
+	severalCombinations, err := producerCode.GeneratePowersetWithinBorders(lowerBorder, upperBorder)
 	if err != nil {
 		log.Fatalln("err = ", err)
 	}
 
-	collection := dbFunctions.ConnectToDB()
-
-	//allCombinationsStatsArray := mapset.NewSet()
-	var allCombinationsStatsArray []stats.Stats
+	var topCombinationsStatsWithinPassedBorders []stats.Stats
 
 	// Просто выводим сгенерированные комбинации
 	for _, combination := range severalCombinations {
@@ -58,24 +54,42 @@ func main() {
 		stats := dbFunctions.GetCombinationStats(combination, collection)
 		fmt.Println("stats: ", stats)
 		if stats.PercentOfStakesWhereEndPriceMoreThanInitial > 57 || stats.PercentOfStakesWhereEndPriceMoreThanInitial < 43 {
-			allCombinationsStatsArray = append(allCombinationsStatsArray, stats)
+			topCombinationsStatsWithinPassedBorders = append(topCombinationsStatsWithinPassedBorders, stats)
 
 			// TODO: Из-за такой сортировки все значения с топовым "ПОЛОЖИТЕЛЬНЫМ" винрейтом (то есть когда больше 57%,
 			// 	а не меньше 43) не входят в финальный список
-			sort.SliceStable(allCombinationsStatsArray, func(i, j int) bool {
-				return allCombinationsStatsArray[i].PercentOfStakesWhereEndPriceMoreThanInitial < allCombinationsStatsArray[j].PercentOfStakesWhereEndPriceMoreThanInitial
+			sort.SliceStable(topCombinationsStatsWithinPassedBorders, func(i, j int) bool {
+				return topCombinationsStatsWithinPassedBorders[i].PercentOfStakesWhereEndPriceMoreThanInitial < topCombinationsStatsWithinPassedBorders[j].PercentOfStakesWhereEndPriceMoreThanInitial
 			})
 
-			if len(allCombinationsStatsArray) > 20 {
-				allCombinationsStatsArray = allCombinationsStatsArray[:20]
+			if len(topCombinationsStatsWithinPassedBorders) > 20 {
+				topCombinationsStatsWithinPassedBorders = topCombinationsStatsWithinPassedBorders[:20]
 			}
 		}
 	}
 
-	fmt.Println("allCombinationsStatsArray = ", allCombinationsStatsArray)
-	for index, stats := range allCombinationsStatsArray {
+	fmt.Println("topCombinationsStatsWithinPassedBorders = ", topCombinationsStatsWithinPassedBorders)
+	for index, stats := range topCombinationsStatsWithinPassedBorders {
 		fmt.Println("#", index, " stats: ", stats)
 	}
+
+	fmt.Println("[topCombinationsWithinBorders] Перед отправкой в канал")
+	channelForSendingTopCombinationStats <- topCombinationsStatsWithinPassedBorders
+	fmt.Println("[topCombinationsWithinBorders] После отправки в канал")
+}
+
+func main() {
+	start := time.Now()
+
+	collection := dbFunctions.ConnectToDB()
+
+	channelForGettingTopStats := make(chan []stats.Stats)
+	go topCombinationsWithinBorders(collection, 8974, 9004, channelForGettingTopStats)
+
+	fmt.Println("[main] Перед получением данных из канала")
+	topStats := <-channelForGettingTopStats
+	fmt.Println("[main] После получения данных из канала")
+	fmt.Println("topStats = ", topStats)
 
 	elapsed := time.Since(start)
 	log.Printf("Program took %s", elapsed)
