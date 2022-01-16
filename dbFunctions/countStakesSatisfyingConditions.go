@@ -13,6 +13,8 @@ import (
 	"strconv"
 )
 
+const tiBuyColumnName = "TiBuy"
+
 func ConnectToDB() *mongo.Collection {
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 
@@ -115,6 +117,7 @@ func GetCombinationStats(combination producerCode.Combination, collection *mongo
 func makeFilter(combination producerCode.Combination) bson.M {
 	pairnames := getPairnamesFromCombination(combination)
 	timeframes := getTimeframesFromCombination(combination)
+	tiBuys := getIndicatorFromCombination(combination, tiBuyColumnName)
 
 	//fmt.Println("[makeFilter] pairnames = ", pairnames)
 	//fmt.Println("[makeFilter] timeframes = ", timeframes)
@@ -130,6 +133,10 @@ func makeFilter(combination producerCode.Combination) bson.M {
 
 	if len(timeframes) != 0 {
 		filter["Timeframe"] = bson.M{"$in": timeframes}
+	}
+
+	if len(tiBuys) != 0 {
+		filter[tiBuyColumnName] = bson.M{"$in": tiBuys}
 	}
 
 	return filter
@@ -157,4 +164,17 @@ func getTimeframesFromCombination(combination producerCode.Combination) []int {
 		}
 	}
 	return timeframes
+}
+
+func getIndicatorFromCombination(combination producerCode.Combination, indicatorColumnName string) []int {
+	var indicators []int
+	for _, condition := range combination.Conditions {
+		if condition.ColumnName == indicatorColumnName {
+			// Конвертируем в int, так как condition.Value по умолчанию является string
+			valueAsInt, _ := strconv.Atoi(condition.Value)
+
+			indicators = append(indicators, valueAsInt)
+		}
+	}
+	return indicators
 }
