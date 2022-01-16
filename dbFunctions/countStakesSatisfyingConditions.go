@@ -13,7 +13,10 @@ import (
 	"strconv"
 )
 
+const maBuyColumnName = "MaBuy"
+const maSellColumnName = "MaSell"
 const tiBuyColumnName = "TiBuy"
+const tiSellColumnName = "TiSell"
 
 func ConnectToDB() *mongo.Collection {
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
@@ -117,7 +120,10 @@ func GetCombinationStats(combination producerCode.Combination, collection *mongo
 func makeFilter(combination producerCode.Combination) bson.M {
 	pairnames := getPairnamesFromCombination(combination)
 	timeframes := getTimeframesFromCombination(combination)
+	maBuys := getIndicatorFromCombination(combination, maBuyColumnName)
+	maSells := getIndicatorFromCombination(combination, maSellColumnName)
 	tiBuys := getIndicatorFromCombination(combination, tiBuyColumnName)
+	tiSells := getIndicatorFromCombination(combination, tiSellColumnName)
 
 	//fmt.Println("[makeFilter] pairnames = ", pairnames)
 	//fmt.Println("[makeFilter] timeframes = ", timeframes)
@@ -135,8 +141,20 @@ func makeFilter(combination producerCode.Combination) bson.M {
 		filter["Timeframe"] = bson.M{"$in": timeframes}
 	}
 
+	if len(maBuys) != 0 {
+		filter[maBuyColumnName] = bson.M{"$in": maBuys}
+	}
+
+	if len(maSells) != 0 {
+		filter[maSellColumnName] = bson.M{"$in": maSells}
+	}
+
 	if len(tiBuys) != 0 {
 		filter[tiBuyColumnName] = bson.M{"$in": tiBuys}
+	}
+
+	if len(tiSells) != 0 {
+		filter[tiSellColumnName] = bson.M{"$in": tiSells}
 	}
 
 	return filter
