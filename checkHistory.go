@@ -6,6 +6,7 @@ import (
 	"goGetSwitch/dbFunctions"
 	"goGetSwitch/stats"
 	"log"
+	"math"
 	"sort"
 	"time"
 )
@@ -56,10 +57,23 @@ func topCombinationsWithinBorders(collection *mongo.Collection, lowerBorder int,
 		if stats.PercentOfStakesWhereEndPriceMoreThanInitial > 57 || stats.PercentOfStakesWhereEndPriceMoreThanInitial < 43 {
 			topCombinationsStatsWithinPassedBorders = append(topCombinationsStatsWithinPassedBorders, stats)
 
+			if stats.PercentOfStakesWhereEndPriceMoreThanInitial > 57 {
+				log.Fatalln("stats с винрейтом больше 57. stats = ", stats)
+				panic("паника-паника")
+			}
+
 			// TODO: Из-за такой сортировки все значения с топовым "ПОЛОЖИТЕЛЬНЫМ" винрейтом (то есть когда больше 57%,
 			// 	а не меньше 43) не входят в финальный список
 			sort.SliceStable(topCombinationsStatsWithinPassedBorders, func(i, j int) bool {
-				return topCombinationsStatsWithinPassedBorders[i].PercentOfStakesWhereEndPriceMoreThanInitial < topCombinationsStatsWithinPassedBorders[j].PercentOfStakesWhereEndPriceMoreThanInitial
+				firstValue := topCombinationsStatsWithinPassedBorders[i].PercentOfStakesWhereEndPriceMoreThanInitial
+				secondValue := topCombinationsStatsWithinPassedBorders[j].PercentOfStakesWhereEndPriceMoreThanInitial
+				// Просто значение, чтобы в выражении в 2 местах стояла переменная.
+				fifty := 50.0
+				/*
+					Смысл выражения ниже в том, чтобы можно было понять, что, например, 10% винрейта лучше, чем 60%
+					(так как если переворачивать ставки с 10% винрейтом, то мы получаем винрейт 90%)
+				*/
+				return math.Abs(fifty-firstValue) < math.Abs(fifty-secondValue)
 			})
 
 			if len(topCombinationsStatsWithinPassedBorders) > 20 {
@@ -84,12 +98,13 @@ func main() {
 	collection := dbFunctions.ConnectToDB()
 
 	channelForGettingTopStats := make(chan []stats.Stats)
-	go topCombinationsWithinBorders(collection, 8974, 9004, channelForGettingTopStats)
+	go topCombinationsWithinBorders(collection, 1, 20, channelForGettingTopStats)
 
 	fmt.Println("[main] Перед получением данных из канала")
+	//topStats := <-channelForGettingTopStats
 	topStats := <-channelForGettingTopStats
 	fmt.Println("[main] После получения данных из канала")
-	fmt.Println("topStats = ", topStats)
+	fmt.Println("len(topStats) = ", len(topStats))
 
 	elapsed := time.Since(start)
 	log.Printf("Program took %s", elapsed)
