@@ -68,6 +68,7 @@ func GetCombinationStats(combination producerCode.Combination, collection *mongo
 
 	fmt.Println("filter = ", filter)
 
+	// TODO: убрать эту строчку и проверить, работает ли всё тем же образом
 	makeFilter(combination)
 
 	// Запрос без фильтров (при нежелании использовать какой-либо фильтр надо передавать
