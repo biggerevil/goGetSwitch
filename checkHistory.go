@@ -106,11 +106,11 @@ func main() {
 	//maxUpperBorder := producerCode.GetMaxUpperBorder()
 	var startBorder int64
 	//startBorder = 0
-	startBorder = 20
+	startBorder = 1000000
 	var maxUpperBorder int64
 	//maxUpperBorder = 20
-	maxUpperBorder = 40
-	step := maxUpperBorder / int64(numberOfGoroutines)
+	maxUpperBorder = 1000020
+	step := (maxUpperBorder - startBorder) / numberOfGoroutines
 	fmt.Println("step = ", step)
 
 	var topCombinationsStats []stats.Stats
@@ -120,6 +120,8 @@ func main() {
 	//}
 
 	var iInInt64 int64
+	// TODO: При таких значения startBorder, maxUpperBorder, numberOfGoroutines и step, как у меня сейчас, условие
+	//	цикла выполняется СРАЗУ, то есть цикл не делает НИ ОДНОЙ итерации. В этом баг
 	for iInInt64 = startBorder; iInInt64 <= numberOfGoroutines*step; iInInt64 += step {
 		fmt.Println("iInInt64 = ", iInInt64)
 		go topCombinationsWithinBorders(collection, iInInt64, iInInt64+step, channelForGettingTopStats)
