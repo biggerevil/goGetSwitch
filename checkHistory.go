@@ -40,7 +40,10 @@ import "goGetSwitch/producerCode"
 	   выводить)
 */
 
-func topCombinationsWithinBorders(collection *mongo.Collection, lowerBorder int, upperBorder int, channelForSendingTopCombinationStats chan []stats.Stats) {
+func topCombinationsWithinBorders(collection *mongo.Collection, lowerBorder int64, upperBorder int64, channelForSendingTopCombinationStats chan []stats.Stats) {
+	fmt.Println("[topCombinationsWithinBorders] Начинаю со значениями: lowerBorder = ", lowerBorder,
+		" и upperBorder = ", upperBorder)
+
 	// Генерируем комбинации
 	severalCombinations, err := producerCode.GeneratePowersetWithinBorders(lowerBorder, upperBorder)
 	if err != nil {
@@ -96,15 +99,84 @@ func main() {
 	start := time.Now()
 
 	collection := dbFunctions.ConnectToDB()
-
 	channelForGettingTopStats := make(chan []stats.Stats)
-	go topCombinationsWithinBorders(collection, 1, 20, channelForGettingTopStats)
 
-	fmt.Println("[main] Перед получением данных из канала")
-	//topStats := <-channelForGettingTopStats
-	topStats := <-channelForGettingTopStats
-	fmt.Println("[main] После получения данных из канала")
-	fmt.Println("len(topStats) = ", len(topStats))
+	var numberOfGoroutines int64
+	numberOfGoroutines = 2
+	//maxUpperBorder := producerCode.GetMaxUpperBorder()
+	var startBorder int64
+	//startBorder = 0
+	startBorder = 20
+	var maxUpperBorder int64
+	//maxUpperBorder = 20
+	maxUpperBorder = 40
+	step := maxUpperBorder / int64(numberOfGoroutines)
+	fmt.Println("step = ", step)
+
+	var topCombinationsStats []stats.Stats
+
+	//for i := 0; i < numberOfGoroutines; i++ {
+	//	go topCombinationsWithinBorders(collection, 1, 20, channelForGettingTopStats)
+	//}
+
+	var iInInt64 int64
+	for iInInt64 = startBorder; iInInt64 <= numberOfGoroutines*step; iInInt64 += step {
+		fmt.Println("iInInt64 = ", iInInt64)
+		go topCombinationsWithinBorders(collection, iInInt64, iInInt64+step, channelForGettingTopStats)
+	}
+
+	for iInInt64 = 0; iInInt64 < numberOfGoroutines; iInInt64++ {
+		fmt.Println("[main] Перед получением данных из канала")
+		topStats := <-channelForGettingTopStats
+		fmt.Println("[main] После получения данных из канала")
+
+		// #1. Сначала оставляем в topStats только лучшие 20 значений
+		// TODO: Дублирование кода
+		sort.SliceStable(topStats, func(i, j int) bool {
+			firstValue := topStats[i].PercentOfStakesWhereEndPriceMoreThanInitial
+			secondValue := topStats[j].PercentOfStakesWhereEndPriceMoreThanInitial
+			// Просто значение, чтобы в выражении в 2 местах стояла переменная.
+			fifty := 50.0
+			/*
+				Смысл выражения ниже в том, чтобы можно было понять, что, например, 10% винрейта лучше, чем 60%
+				(так как если переворачивать ставки с 10% винрейтом, то мы получаем винрейт 90%)
+			*/
+			return math.Abs(fifty-firstValue) > math.Abs(fifty-secondValue)
+		})
+
+		if len(topStats) > 20 {
+			topStats = topStats[:20]
+		}
+
+		// #2. Затем добавляем все значения из topStats в topCombinationsStats
+		for _, stat := range topStats {
+			topCombinationsStats = append(topCombinationsStats, stat)
+		}
+		fmt.Println("len(topCombinationsStats) После добавления новых топовых комбинаций = ", len(topCombinationsStats))
+
+		// #3. Затем сортируем topCombinationsStats и оставляем лучшие 20 значений
+		// TODO: дублирование кода
+		sort.SliceStable(topCombinationsStats, func(i, j int) bool {
+			firstValue := topCombinationsStats[i].PercentOfStakesWhereEndPriceMoreThanInitial
+			secondValue := topCombinationsStats[j].PercentOfStakesWhereEndPriceMoreThanInitial
+			// Просто значение, чтобы в выражении в 2 местах стояла переменная.
+			fifty := 50.0
+			/*
+				Смысл выражения ниже в том, чтобы можно было понять, что, например, 10% винрейта лучше, чем 60%
+				(так как если переворачивать ставки с 10% винрейтом, то мы получаем винрейт 90%)
+			*/
+			return math.Abs(fifty-firstValue) > math.Abs(fifty-secondValue)
+		})
+
+		if len(topCombinationsStats) > 20 {
+			topCombinationsStats = topCombinationsStats[:20]
+		}
+	}
+
+	fmt.Println("[main] topCombinationsStats:")
+	for index, stats := range topCombinationsStats {
+		fmt.Println("#", index, " stats: ", stats)
+	}
 
 	elapsed := time.Since(start)
 	log.Printf("Program took %s", elapsed)

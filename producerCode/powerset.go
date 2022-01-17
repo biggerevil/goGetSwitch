@@ -86,10 +86,10 @@ var conditions = []Condition{
 	Condition{"TiSell", "11"},
 }
 
-func GeneratePowersetWithinBorders(lowerBorder int, upperBorder int) ([]Combination, error) {
+func GeneratePowersetWithinBorders(lowerBorder int64, upperBorder int64) ([]Combination, error) {
 	// Проверка, что переданный upperBorder не превышает допустимое значение
 	// Заметь,что здесь сначала считается степень, а уже ПОСЛЕ делается -1
-	maxUpperBorder := int(math.Pow(2, float64(len(conditions))) - 1)
+	maxUpperBorder := int64(math.Pow(2, float64(len(conditions))) - 1)
 	fmt.Println("float64(len(conditions)) - 1 = ", float64(len(conditions))-1)
 	fmt.Println("math.Pow(2, float64(len(conditions))) - 1 = ", math.Pow(2, float64(len(conditions)))-1)
 	fmt.Println("maxUpperBorder = ", maxUpperBorder)
@@ -138,4 +138,8 @@ func GeneratePowersetWithinBorders(lowerBorder int, upperBorder int) ([]Combinat
 
 	// Возвращаем сгенерированные комбинации и "пустую" ошибку
 	return severalCombinations, nil
+}
+
+func GetMaxUpperBorder() int64 {
+	return int64(int(math.Pow(2, float64(len(conditions))) - 1))
 }
