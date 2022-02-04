@@ -95,15 +95,6 @@ var conditions = []Condition{
 }
 
 func GeneratePowersetWithinBorders(lowerBorder int64, upperBorder int64) ([]Combination, error) {
-	fmt.Println("len(conditions) = ", len(conditions))
-	lookedColumnName := "TiBuy"
-	lookedValue := "1"
-	for i, v := range conditions {
-		if v.ColumnName == lookedColumnName && v.Value == lookedValue {
-			fmt.Println("i of ", lookedColumnName, ":", lookedValue, " = ", i)
-		}
-	}
-
 	// Проверка, что переданный upperBorder не превышает допустимое значение
 	// Заметь,что здесь сначала считается степень, а уже ПОСЛЕ делается -1
 	maxUpperBorder := int64(math.Pow(2, float64(len(conditions))) - 1)
@@ -127,31 +118,24 @@ func GeneratePowersetWithinBorders(lowerBorder int64, upperBorder int64) ([]Comb
 		// s - это двоичное представление числа i. Алгоритм основан на использовании двоичного представления.
 		// (см. stackoverflow-ссылку, откуда взята идея для работы алгоритма)
 		s := fmt.Sprintf("%b", i)
-		fmt.Println("binary represantion of a number:", s)
 
 		// Создаём комбинацию для этой итерации. В эту комбинацию будем добавлять необходимые Condition
 		var combination Combination
 
 		// counter нужен для того, чтобы определить, брать ли condition. Я думаю, этот алгоритм можно как-либо улучшить
+		// TODO: counter после коммита 4 февраля (2022 г.) по идее больше не нужен.
 		counter := 0
 		// Итерируемся по двоичному представлению числа (по переменной s).
 		// По очереди будем брать каждую цифру из двоичного представления
 		for bit := len(s) - 1; bit >= 0; bit-- {
 			// Берём цифру
 			value := string(s[bit])
-			//fmt.Println("value = ", value)
-			//fmt.Println("bit = ", bit)
-			//fmt.Println("counter = ", counter)
 
 			// Проверяем цифру из двоичного представления на значение 1.
 			// Если 1, то надо взять соответствующее значение из массива conditions (см. stackoverflow-ссылку, откуда
 			// взята идея для работы алгоритма)
 			if value == "1" {
 				combination.Conditions = append(combination.Conditions, conditions[bit])
-				//fmt.Println("Добавляю ", conditions[counter])
-				//fmt.Println("conditions[0] = ", conditions[0])
-				//fmt.Println("conditions[1] = ", conditions[1])
-				//fmt.Println("conditions[14] = ", conditions[14])
 			}
 			counter++
 		}
