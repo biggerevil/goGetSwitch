@@ -66,7 +66,7 @@ func topCombinationsWithinBorders(collection *mongo.Collection, lowerBorder int6
 			}
 
 			// TODO: Из-за такой сортировки все значения с топовым "ПОЛОЖИТЕЛЬНЫМ" винрейтом (то есть когда больше 57%,
-			// 	а не меньше 43) не входят в финальный список
+			// 	а не меньше 43) не входят в финальный список. Или я это уже исправил?
 			sort.SliceStable(topCombinationsStatsWithinPassedBorders, func(i, j int) bool {
 				firstValue := topCombinationsStatsWithinPassedBorders[i].PercentOfStakesWhereEndPriceMoreThanInitial
 				secondValue := topCombinationsStatsWithinPassedBorders[j].PercentOfStakesWhereEndPriceMoreThanInitial
