@@ -1,6 +1,9 @@
 package stats
 
-import "goGetSwitch/producerCode"
+import (
+	"fmt"
+	"goGetSwitch/producerCode"
+)
 
 type Stats struct {
 	Combination                                 producerCode.Combination
@@ -15,3 +18,10 @@ type Stats struct {
 //func (statsArray ByPercent) Len() int           { return len(statsArray) }
 //func (statsArray ByPercent) Less(i, j int) bool { return statsArray[i].PercentOfStakesWhereEndPriceMoreThanInitial < statsArray[j].PercentOfStakesWhereEndPriceMoreThanInitial }
 //func (statsArray ByPercent) Swap(i, j int)      { statsArray[i], statsArray[j] = statsArray[j], statsArray[i] }
+
+func PrintStats(incomingStats Stats) {
+	fmt.Println("Combination: ", incomingStats.Combination, "\nStakes at all: ", incomingStats.StakesAtAll,
+		"\nStakes where end price more than initial: ", incomingStats.StakesWhereEndPriceMoreThanInitialCount,
+		"\nPercent of stakes where end price more than initial: ",
+		incomingStats.PercentOfStakesWhereEndPriceMoreThanInitial)
+}
