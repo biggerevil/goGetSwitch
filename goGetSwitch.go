@@ -27,11 +27,20 @@ func dataGetterAndParser(baseUrl string, timeframe string, unixTimestamp int64, 
 }
 
 func main() {
+	// Замеряем время работы программы.
 	start := time.Now()
 
 	// Для ожидания завершения горутин
+	// TODO: с добавлением каналов это по идее уже не очень нужно.
+	//  Наверное, стоит делать разработку в отдельной ветке, и написать там много тестов, чтобы быть более спокойными,
+	//  что мы ничего не сломали.
 	var wg sync.WaitGroup
 
+	// Это базовая ссылка, с которой мы получаем данные (эти данные потом записываем в БД).
+	// К этой ссылке нужно только добавить время, на которое мы хотим получить
+	// данные (на 5 минут (300 секунд), 15 минут (900 секунд) и так далее).
+	// Данные мы получаем на все пары (номера пар (я не знаю, почему номера именно такие, просто вот
+	// так вот сайт работает) передаются в параметре pairs, см. ссылку)
 	baseUrl := "https://www.investing.com/common/technical_summary/api.php?action=TSB_updatePairs&pairs=1,2,3,5,7,9,10&timeframe="
 
 	// Вариант с одним URL
@@ -46,19 +55,24 @@ func main() {
 	// несколько секунд
 	currentUnixTimestamp := time.Now().Unix()
 
+	// Канал, из которого мы будем получать сигналы из горутин
 	channelForGettingSignalsArray := make(chan []signal.Signal)
+	// Массив со всеми новыми сигналами
 	var allNewSignals []signal.Signal
 
+	// Запускаем горутины со всеми timeframe (время ставки)
 	for _, timeframe := range timeframes {
 		wg.Add(1)
 		go dataGetterAndParser(baseUrl, timeframe, currentUnixTimestamp, &wg, channelForGettingSignalsArray)
 	}
 
-	// Получение данных из канала
+	// Получение данных из канала и добавление их в массив всех новых сигналов
 	// TODO: этот код не рассчитывает, что данные откуда-либо могут не вернуться.
 	//	Я думаю, это не совсем корректный способ получения данных
 	for i := 0; i < len(timeframes); i++ {
+		// Получение данных из канала
 		newSignals := <-channelForGettingSignalsArray
+		// Добавление новых сигналов в массив со всеми новыми сигналами
 		allNewSignals = append(allNewSignals, newSignals...)
 		fmt.Println("[While working] len(allNewSignals) = ", len(allNewSignals))
 	}
@@ -70,13 +84,15 @@ func main() {
 	fmt.Println("len(allNewSignals) = ", len(allNewSignals))
 
 	log.Println("Собираюсь позвать dbFunctions.WriteData")
+	// Записываем данные в БД.
 	dbFunctions.WriteData(allNewSignals)
 	log.Println("Закончил с вызовом dbFunctions.WriteData")
 
 	// Добавляем к "заканчивающимся" ставкам конечную цену
-	// И информацию, больше ли конечная цена, чем начальная
+	// и информацию, больше ли конечная цена, чем начальная
 	dbFunctions.UpdateEndingStakes(currentUnixTimestamp, allNewSignals)
 
+	// Заканчиваем замер времени работы программы и выводим эту информацию.
 	elapsed := time.Since(start)
 	log.Printf("Program took %s", elapsed)
 }

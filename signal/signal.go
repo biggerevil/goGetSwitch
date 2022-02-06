@@ -6,6 +6,9 @@ import (
 	"strconv"
 )
 
+/*
+	Это структура, в которой мы будем хранить сигналы.
+*/
 type Signal struct {
 	// Объявляю на новых строчках (а не в одну) для наглядности
 	MaBuy  int `bson:"MaBuy" json:"MaBuy"`
@@ -31,6 +34,11 @@ type Signal struct {
 	*/
 }
 
+/*
+	Это функция просто возвращает строку из переданного сигнала.
+	Может быть полезна для логгирования, какой сигнал мы добавили.
+	Возможно, в Go есть способ полегче для такой задачи, не знаю точно.
+*/
 func SignalDataInOneStringWithComments(signal Signal) string {
 	stringToReturn := "Pairname: " + signal.Pairname +
 		//stringToReturn := "ID: " + signal.ID.String() +

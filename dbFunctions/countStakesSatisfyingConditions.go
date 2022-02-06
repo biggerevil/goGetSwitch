@@ -13,11 +13,17 @@ import (
 	"strconv"
 )
 
+// Это названия полей я сохраняю в отдельных переменных. Таким образом хочу защититься от того, что я где-то
+// опечатаюсь в названии поля.
 const maBuyColumnName = "MaBuy"
 const maSellColumnName = "MaSell"
 const tiBuyColumnName = "TiBuy"
 const tiSellColumnName = "TiSell"
 
+/*
+	Это отдельная функция, которая подключается к БД и возвращает коллекцию.
+	Вынес это в отдельную ф-ю, чтобы не писать такой код в начале каждой ф-и, которой надо подключиться к БД.
+*/
 func ConnectToDB() *mongo.Collection {
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 
@@ -39,6 +45,15 @@ func ConnectToDB() *mongo.Collection {
 	return collection
 }
 
+/*
+	Эта функция принимает на вход комбинацию и коллекцию. Возвращает она статистику по переданной комбинации.
+	TODO: Считать винрейт не относительно всех ставок, а относительно тех ставок, где endPriceMoreThanInitial. Так
+	 как в некоторых комбинациях может быть куча ставок, где endPriceMoreThanInitial=0. И там на самом деле винрейт
+	 не 33%, а как бы 50% (если не считать endPriceMoreThanInitial=0. Но в таком случае брокер по идее делает просто
+	 возврат ставки, но там кто как, не говоря уже о задержке сети при отправке ставки. Но в любом случае, я думаю,
+	 так считать винрейт будет более корректным решением).
+	TODO: привести функцию к красивому виду, удалить ненужный код, добавить комментарии к тому, что она делает.
+*/
 func GetCombinationStats(combination producerCode.Combination, collection *mongo.Collection) stats.Stats {
 	// CORRECT in its own way. Just doesn't enough, because only one timeframe
 	//filter := bson.M{
@@ -117,7 +132,12 @@ func GetCombinationStats(combination producerCode.Combination, collection *mongo
 	return stats
 }
 
+/*
+	Эта функция принимает на вход комбинацию и возвращает filter для MongoDB.
+	При помощи этого фильтра можно будет достать из БД только те ставки, которые подходят под эту комбинацию.
+*/
 func makeFilter(combination producerCode.Combination) bson.M {
+	// 1. Сначала мы по очереди достаём из комбинации все пары, все таймфреймы, все индикаторы.
 	pairnames := getPairnamesFromCombination(combination)
 	timeframes := getTimeframesFromCombination(combination)
 	maBuys := getIndicatorFromCombination(combination, maBuyColumnName)
@@ -128,11 +148,15 @@ func makeFilter(combination producerCode.Combination) bson.M {
 	//fmt.Println("[makeFilter] pairnames = ", pairnames)
 	//fmt.Println("[makeFilter] timeframes = ", timeframes)
 
+	// 2. Затем мы создаём фильтр (который в итоге вернём), в который будем
+	// добавлять условия (Condition) из комбинации (Combination).
 	filter := bson.M{
 		//"Pairname":  bson.M{"$in": pairnames},
 		//"Timeframe": bson.M{"$in": timeframes},
 	}
 
+	// 3. И затем по очереди добавляем в наш фильтр все условия (Condition) из комбинации (Combination).
+	// Если эти условия (Condition) вообще есть, конечно (поэтому сначала проверяем при помощи if len(...) != 0)
 	if len(pairnames) != 0 {
 		filter["Pairname"] = bson.M{"$in": pairnames}
 	}
@@ -160,6 +184,9 @@ func makeFilter(combination producerCode.Combination) bson.M {
 	return filter
 }
 
+/*
+	При помощи этой функции мы достаём все пары из комбинации.
+*/
 func getPairnamesFromCombination(combination producerCode.Combination) []string {
 	var pairnames []string
 	for _, condition := range combination.Conditions {
@@ -170,6 +197,10 @@ func getPairnamesFromCombination(combination producerCode.Combination) []string 
 	return pairnames
 }
 
+/*
+	При помощи этой функции мы достаём все таймфреймы из комбинации.
+	В отличии от доставания пары таймфрейм мы превращаем в int (а пару мы превращаем в string).
+*/
 func getTimeframesFromCombination(combination producerCode.Combination) []int {
 	var timeframes []int
 	for _, condition := range combination.Conditions {
@@ -184,6 +215,11 @@ func getTimeframesFromCombination(combination producerCode.Combination) []int {
 	return timeframes
 }
 
+/*
+	При помощи этой функции мы достаём все индикаторы из комбинации.
+	При этом поскольку у нас 4 вида индикаторов, но по сути они похожи, то мы дополнительно передаём в ф-ю
+	название нашего индикатора.
+*/
 func getIndicatorFromCombination(combination producerCode.Combination, indicatorColumnName string) []int {
 	var indicators []int
 	for _, condition := range combination.Conditions {

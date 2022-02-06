@@ -97,6 +97,11 @@ var conditions = []producerCode.Condition{
 	//	делать вот так подолгу.
 }
 
+/*
+	Эта функция служит для "доставания" из массива всех возможных условий (Condition) всех возможных
+	значений.
+	Это на данный момент (7 февраля 2022) нужно для последующей итерации по этим значениям и составления комбинаций.
+*/
 func getColumnNameFromConditions(requiredColumnName string, conditionsToLookFrom []producerCode.Condition) []producerCode.Condition {
 	var conditionsWithRequiredColumnName []producerCode.Condition
 	for _, condition := range conditionsToLookFrom {
@@ -107,6 +112,10 @@ func getColumnNameFromConditions(requiredColumnName string, conditionsToLookFrom
 	return conditionsWithRequiredColumnName
 }
 
+/*
+	Эта ф-я служит для создания комбинации из переданных условий (incomingConditions) и последующего
+	вызова ф-и для подсчёта статистики по комбинации (вызова ф-и GetCombinationStats)
+*/
 func getStatsFor(collection *mongo.Collection, incomingConditions ...producerCode.Condition) stats.Stats {
 	var combination producerCode.Combination
 	for _, condition := range incomingConditions {
@@ -120,6 +129,7 @@ func getStatsFor(collection *mongo.Collection, incomingConditions ...producerCod
 }
 
 func main() {
+	// Замеряем время работы программы.
 	start := time.Now()
 
 	// 277042167809
@@ -142,6 +152,10 @@ func main() {
 	////fmt.Println("stats = ", stats)
 	//stats.PrintStats(statsOfCombination)
 
+	/*
+		По очереди достаём все возможные значения всех возможный полей и сохраняем в отдельных массивах.
+		Возможно, стоит делать это как-либо иначе, а не вызывать почти один и тот же код несколько раз.
+	*/
 	pairnamesFromConditions := getColumnNameFromConditions("Pairname", conditions)
 	fmt.Println("pairnamesFromConditions = ", pairnamesFromConditions)
 
@@ -162,18 +176,33 @@ func main() {
 
 	fmt.Println("\n\n\n")
 
+	// Создаём массив, в котором будем хранить ВСЮ статистику по нашим комбинациям.
 	var resultStats []stats.Stats
+	// Подключаемся к БД и сохраняем объект подключения в переменной collection (некоторые ф-и этого
+	// проекта для работы с БД принимают на вход объект подключения, а точнее коллекции).
 	collection := dbFunctions.ConnectToDB()
 
-	/* TODO: С TiBuy и TiSell значения рядом интересуют нас:
-
-	Вот как здесь - TiBuy всегда равен 1, а TiSell от 7 до 9.
-	> db.stakes.find({ "TiBuy": 1, "TiSell": 8 }).count()
-	59886
-	> db.stakes.find({ "TiBuy": 1, "TiSell": 7 }).count()
-	60587
-	> db.stakes.find({ "TiBuy": 1, "TiSell": 9 }).count()
-	30753
+	/*
+		В этих циклах мы по очереди берём:
+		1. Сначала каждое название пары;
+		2. Затем каждое значение таймфрейма;
+		3. Затем каждое значение MaBuy;
+		4. И затем каждое значение TiBuy и TiSell. TiBuy и TiSell берутся отдельно друг от друга. То есть
+		для каждой комбинации (пара; таймфрейм; MaBuy) мы проверим (пара; таймфрейм; MaBuy; TiBuy), а затем
+		проверим (пара; таймфрейм; MaBuy; TiSell).
+	*/
+	/*
+		TODO: Добавить работу с крайними значениями TiBuy и TiSell.
+		 Вот как здесь - TiBuy всегда равен 1, а TiSell от 7 до 9.
+		 И мы хотим проверить все комбинации. Возможно, мы хотим для КАЖДОГО TiBuy и
+		 затем для КАЖДОГО (тоже для каждого или всё-таки нет?) TiSell проверять
+		 все значения соответственно TiSell и TiBuy.
+		 > db.stakes.find({ "TiBuy": 1, "TiSell": 8 }).count()
+		 59886
+		 > db.stakes.find({ "TiBuy": 1, "TiSell": 7 }).count()
+		 60587
+		 > db.stakes.find({ "TiBuy": 1, "TiSell": 9 }).count()
+		 30753
 	*/
 	for _, pairnameDesiredCondition := range pairnamesFromConditions {
 		for _, timeframeDesiredCondition := range timeframesFromConditions {
@@ -214,26 +243,32 @@ func main() {
 	fmt.Println("resultStats = ", resultStats)
 	fmt.Println("len(resultStats) = ", len(resultStats))
 
+	// Сортируем массив со всей статистикой по кол-ву ставок комбинации.
 	sort.Slice(resultStats, func(i, j int) bool {
 		return resultStats[i].StakesAtAll > resultStats[j].StakesAtAll
 	})
 
+	// Создаём файл, чтобы записать в него данные.
 	f, err := os.Create("resultingStats.txt")
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// Указываем, что при завершении main() мы хотим закрыть этот файл.
 	defer f.Close()
 
+	// Итерируемся по всей статистике и записываем в файл.
 	for _, resultingStats := range resultStats {
+		// Получаем string со статистикой.
 		stringToWriteDown := stats.StatsAsPrettyString(resultingStats)
+		// Записываем в файл.
 		_, err2 := f.WriteString(stringToWriteDown)
 		if err2 != nil {
 			log.Fatal(err2)
 		}
 	}
 
+	// Заканчиваем замер времени работы программы и выводим эту информацию.
 	elapsed := time.Since(start)
 	fmt.Printf("Done in %s\n", elapsed)
 

@@ -56,7 +56,7 @@ func UpdateEndingStakes(currentUnixTimestamp int64, allSignals []signal.Signal) 
 	// "НазваниеВалютнойПары":ЗначениеВалютнойПарыНаДанныйМомент
 	var memorizedPairsAndPrices map[string]float64
 
-	// Итерируемся по каждому сигналу, у которого UnixTimestamp == текущий timestamp
+	// Итерируемся по каждому сигналу, у которого EndUnixTimestamp == текущий timestamp
 	for cur.Next(context.TODO()) {
 		// Достаём сигнал
 		var oldSignal signal.Signal
@@ -92,6 +92,13 @@ func UpdateEndingStakes(currentUnixTimestamp int64, allSignals []signal.Signal) 
 	log.Println("[UpdateEndingStakes] Конец")
 }
 
+/* Эта функция принимает на вход название пары и массив сигналов. И ищет среди этого массива
+ сигнал с такой же парой. Это нужно для того, чтобы:
+	1. Мы находим в БД сигнал, который вот сейчас уже закончился;
+	2. Мы хотим добавить этому сигналу цену при его "окончании";
+	3. Мы используем эту функцию, передавая в неё название пары сигнала и массив свежих сигналов.
+	4. Ф-я возвращает цену сигнала.
+*/
 func findPriceOfPairnameInAllSignals(requiredPairname string, allSignals []signal.Signal) float64 {
 	for _, signal := range allSignals {
 		if signal.Pairname == requiredPairname {
@@ -99,10 +106,18 @@ func findPriceOfPairnameInAllSignals(requiredPairname string, allSignals []signa
 		}
 	}
 
+	// TODO: И log.Fatalln, и panic - оба заканчивают программу. Поэтому panic не сработает, так как log.Fatalln
+	// уже закончит программу. Я, вроде, написал так для перестраховки, но после добавления тестов можно будет
+	// убрать этот panic (или убрать log.Fatalln и оставить panic).
 	log.Fatalln("[findPriceOfPairnameInAllSignals] Не нашёл сигнал с парой = ", requiredPairname, "среди всех сигналов, делаю panic()")
 	panic("panic that shouldn't ever work because of previous log.Fatalln, right?")
 }
 
+/*
+	Эта ф-я принимает на вход текущую цену сигнала и предыдущую (изначальную) цену.
+	И в зависимости от переданных значений возвращает 1, -1 или 0. Я мог не использовать отдельную функцию
+	для такого кода, но мне показалось это хорошей идеей вынести такой важный функционал в отдельную ф-ю.
+*/
 func currentPriceBiggerThanPreviousPriceFunction(currentPrice float64, previousPrice float64) int {
 	if currentPrice > previousPrice {
 		return 1
@@ -119,6 +134,15 @@ func currentPriceBiggerThanPreviousPriceFunction(currentPrice float64, previousP
 	panic("[currentPriceBiggerThanPreviousPrice] Код никогда не должен доходить досюда!")
 }
 
+/*
+	Эта ф-я делает фактическое обновление "закончившейся" ставки в БД.
+	Нам нужно добавлять только два поля - финальную цену и больше ли финальная цена начальной.
+	На вход получает:
+	1. Ссылку на коллекцию (грубо говоря ссылку на БД);
+	2. ID сигнала, который нужно обновить;
+	3. Финальную цену;
+	4. Больше ли конечная цена, чем начальная.
+*/
 func updateStakeInDB(stakesCollection *mongo.Collection, idOfsignaltoupdate primitive.ObjectID, endPrice float64, endPriceBiggerThanInitial int) {
 	result, err := stakesCollection.UpdateOne(
 		context.TODO(),

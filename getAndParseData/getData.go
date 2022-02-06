@@ -6,6 +6,9 @@ import (
 	"net/http"
 )
 
+/*
+	В этой функции мы просто отправляем GET-запрос на необходимый адрес и возвращаем ответ.
+*/
 func GetData(url string) []byte {
 	// Create client
 	client := &http.Client{}
@@ -27,6 +30,8 @@ func GetData(url string) []byte {
 	// Read Response Body
 	respBody, _ := ioutil.ReadAll(resp.Body)
 
+	// Я вывожу ответ для контроля.
+	// TODO: сменить fmt на log.
 	fmt.Println("string(respBody) = ", string(respBody))
 
 	return respBody
