@@ -3,6 +3,7 @@ package stats
 import (
 	"fmt"
 	"goGetSwitch/producerCode"
+	"strconv"
 )
 
 type Stats struct {
@@ -19,9 +20,19 @@ type Stats struct {
 //func (statsArray ByPercent) Less(i, j int) bool { return statsArray[i].PercentOfStakesWhereEndPriceMoreThanInitial < statsArray[j].PercentOfStakesWhereEndPriceMoreThanInitial }
 //func (statsArray ByPercent) Swap(i, j int)      { statsArray[i], statsArray[j] = statsArray[j], statsArray[i] }
 
-func PrintStats(incomingStats Stats) {
-	fmt.Println("Combination: ", incomingStats.Combination, "\nStakes at all: ", incomingStats.StakesAtAll,
-		"\nStakes where end price more than initial: ", incomingStats.StakesWhereEndPriceMoreThanInitialCount,
-		"\nPercent of stakes where end price more than initial: ",
-		incomingStats.PercentOfStakesWhereEndPriceMoreThanInitial)
+func ConditionsAsString(incomingStats Stats) string {
+	stringWithConditions := ""
+	for _, condition := range incomingStats.Combination.Conditions {
+		stringWithConditions += condition.ColumnName + ": " + condition.Value + ", "
+	}
+	return stringWithConditions
+}
+
+func StatsAsPrettyString(incomingStats Stats) string {
+	stringToReturn := "Combination: " + ConditionsAsString(incomingStats) + "\nStakes at all: " + strconv.FormatInt(incomingStats.StakesAtAll, 10) +
+		"\nStakes where end price more than initial: " + strconv.FormatInt(incomingStats.StakesWhereEndPriceMoreThanInitialCount, 10) +
+		"\nPercent of stakes where end price more than initial: " +
+		fmt.Sprintf("%f", incomingStats.PercentOfStakesWhereEndPriceMoreThanInitial)
+
+	return stringToReturn
 }
