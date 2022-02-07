@@ -11,10 +11,10 @@ import (
 )
 
 // Можно использовать структуру для парсинга ответа от investing
-type investingResponse struct {
-	Page   int
-	Fruits []string
-}
+//type investingResponse struct {
+//	Page   int
+//	Fruits []string
+//}
 
 func dataGetterAndParser(baseUrl string, timeframe string, unixTimestamp int64, wg *sync.WaitGroup, channelForSendingSignalsArrays chan []signal.Signal) {
 	defer wg.Done()
