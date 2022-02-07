@@ -16,7 +16,8 @@ type Signal struct {
 	TiBuy  int `bson:"TiBuy" json:"TiBuy"`
 	TiSell int `bson:"TiSell" json:"TiSell"`
 
-	Pairname           string  `bson:"Pairname" json:"Pairname"`
+	Pairname string `bson:"Pairname" json:"Pairname"`
+	// TODO: Было бы хорошо сменить в коде и в БД CurrentPrice на InitialPrice
 	CurrentPrice       float64 `bson:"CurrentPrice" json:"CurrentPrice"`
 	Timeframe          int     `bson:"Timeframe" json:"Timeframe"`
 	StartUnixTimestamp int64   `bson:"StartUnixTimestamp" json:"StartUnixTimestamp"`
