@@ -126,8 +126,8 @@ func GetCombinationStats(combination producerCode.Combination, collection *mongo
 	stats := stats.Stats{}
 	stats.Combination = combination
 	stats.StakesAtAll = stakesCount
-	stats.StakesWhereEndPriceMoreThanInitialCount = stakesWhereEndPriceMoreThanInitialCount
-	stats.PercentOfStakesWhereEndPriceMoreThanInitial = percentOfStakesWhereEndPriceMoreThanInitial
+	stats.AllRelativeStakesWhereEndPriceMoreThanInitialCount = stakesWhereEndPriceMoreThanInitialCount
+	stats.AllRelativePercentOfStakesWhereEndPriceMoreThanInitial = percentOfStakesWhereEndPriceMoreThanInitial
 
 	return stats
 }
