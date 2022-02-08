@@ -53,17 +53,17 @@ func ConditionsAsString(incomingStats Stats) string {
 	необходимости записать, например, в текстовый файл.
 */
 func StatsAsPrettyString(incomingStats Stats) string {
-	stringToReturn := "Combination: " + ConditionsAsString(incomingStats) + "\nStakes at all: " + strconv.FormatInt(incomingStats.StakesAtAll, 10) +
-		"\nStakes where end price more than initial: " + strconv.FormatInt(incomingStats.StakesWhereEndPriceMoreThanInitialCount, 10) +
-		"\nPercent of stakes where end price more than initial relative to all stakes: " +
+	stringToReturn := "Combination: " + ConditionsAsString(incomingStats) + "\nStakes at all:\n" + strconv.FormatInt(incomingStats.StakesAtAll, 10) +
+		"\nStakes where end price more than initial:\n" + strconv.FormatInt(incomingStats.StakesWhereEndPriceMoreThanInitialCount, 10) +
+		"\nPercent of stakes where end price more than initial relative to all stakes:\n" +
 		fmt.Sprintf("%f", incomingStats.PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakes) +
-		"\nStakes where end price more than initial and not 0: " +
+		"\nStakes where end price more than initial and not 0:\n" +
 		strconv.FormatInt(incomingStats.StakesCountWhereEndPriceNotZero, 10) +
-		"\nPercent of stakes where end price more than initial relative to all stakes where endPriceMoreThanInitial not 0: " +
+		"\nPercent of stakes where end price more than initial relative to all stakes where endPriceMoreThanInitial not 0:\n" +
 		fmt.Sprintf("%f", incomingStats.PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakesWhereEndPriceNotZero) +
-		"\nStakes where end price more than initial and not 0 and exists: " +
+		"\nStakes where end price more than initial and not 0 and exists:\n" +
 		strconv.FormatInt(incomingStats.StakesWhereEndPriceMoreThanInitialCountNotZeroAndExists, 10) +
-		"\nPercent of stakes where end price more than initial relative to all stakes where endPriceMoreThanInitial not 0 and exists: " +
+		"\nPercent of stakes where end price more than initial relative to all stakes where endPriceMoreThanInitial not 0 and exists:\n" +
 		fmt.Sprintf("%f", incomingStats.PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakesWhereEndPriceNotZeroAndExists)
 
 	return stringToReturn
