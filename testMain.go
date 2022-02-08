@@ -8,7 +8,11 @@ import (
 	"goGetSwitch/stats"
 	"log"
 	"os"
+	"runtime"
 	"sort"
+	"strconv"
+	"strings"
+	"sync"
 	"time"
 )
 
@@ -118,42 +122,109 @@ func getColumnNameFromConditions(requiredColumnName string, conditionsToLookFrom
 	Эта ф-я служит для создания комбинации из переданных условий (incomingConditions) и последующего
 	вызова ф-и для подсчёта статистики по комбинации (вызова ф-и GetCombinationStats)
 */
-func getStatsFor(collection *mongo.Collection, incomingConditions ...producerCode.Condition) stats.Stats {
-	var combination producerCode.Combination
-	for _, condition := range incomingConditions {
-		fmt.Println("Adding condition = ", condition)
-		combination.Conditions = append(combination.Conditions, producerCode.Condition{ColumnName: condition.ColumnName, Value: condition.Value})
-	}
-	statsOfCombination := dbFunctions.GetCombinationStats(combination, collection)
+func getStatsFor(collection *mongo.Collection, incomingCombination producerCode.Combination) stats.Stats {
+	//var combination producerCode.Combination
+	//for _, condition := range incomingConditions {
+	//	fmt.Println("Adding condition = ", condition)
+	//	combination.Conditions = append(combination.Conditions, producerCode.Condition{ColumnName: condition.ColumnName, Value: condition.Value})
+	//}
+	statsOfCombination := dbFunctions.GetCombinationStats(incomingCombination, collection)
 	fmt.Println(stats.StatsAsPrettyString(statsOfCombination))
 
 	return statsOfCombination
+}
+
+func composeCombinationFromCondition(incomingConditions ...producerCode.Condition) producerCode.Combination {
+	var combination producerCode.Combination
+	for _, condition := range incomingConditions {
+		//fmt.Println("Adding condition = ", condition)
+		combination.Conditions = append(combination.Conditions, producerCode.Condition{ColumnName: condition.ColumnName, Value: condition.Value})
+	}
+	return combination
+}
+
+// Возвращает id горутины. Использовал эту функцию для проверки, что все горутинЫ работают. Код отсюда (нашёл при помощи гугла):
+// https://gist.github.com/metafeather/3615b23097836bc36579100dac376906
+func goid() int {
+	var buf [64]byte
+	n := runtime.Stack(buf[:], false)
+	idField := strings.Fields(strings.TrimPrefix(string(buf[:n]), "goroutine "))[0]
+	id, err := strconv.Atoi(idField)
+	if err != nil {
+		panic(fmt.Sprintf("cannot get goroutine id: %v", err))
+	}
+	return id
+}
+
+/*
+	Эта функция принимает массив всех комбинаций и отдаёт их в канал, из которого
+	будут читать горутины и считать статистику.
+	Методика отсюда - https://go.dev/blog/pipelines
+*/
+func generateChannelWithCombinations(combinations []producerCode.Combination) <-chan producerCode.Combination {
+	out := make(chan producerCode.Combination)
+	go func() {
+		for _, combination := range combinations {
+			out <- combination
+		}
+		close(out)
+	}()
+	return out
+}
+
+/*
+	Эта функция будет читать данные из канала (и получать комбинации) и считать статистику по ним.
+	И затем эту статистику отправлять в другой канал.
+	Методика отсюда - https://go.dev/blog/pipelines
+*/
+func getStatsForCombinationsFromChannel(collection *mongo.Collection, in <-chan producerCode.Combination) <-chan stats.Stats {
+	out := make(chan stats.Stats)
+	go func() {
+		for combinationFromChannel := range in {
+			//fmt.Println(goid(), " работает")
+			returnedStats := getStatsFor(collection, combinationFromChannel)
+			out <- returnedStats
+		}
+		close(out)
+	}()
+	return out
+}
+
+/*
+	При помощи этой функции мы будем дожидаться, пока все горутины соберут статистику.
+	И по идее будет возвращать данные из канала или сам канал (пока не разобрался).
+	Методика отсюда - https://go.dev/blog/pipelines
+*/
+func mergeCombinationsFromChannels(cs ...<-chan stats.Stats) <-chan stats.Stats {
+	var wg sync.WaitGroup
+	out := make(chan stats.Stats)
+
+	// Start an output goroutine for each input channel in cs.  output
+	// copies values from c to out until c is closed, then calls wg.Done.
+	output := func(c <-chan stats.Stats) {
+		for n := range c {
+			out <- n
+		}
+		wg.Done()
+	}
+	wg.Add(len(cs))
+	for _, c := range cs {
+		go output(c)
+	}
+
+	// Start a goroutine to close out once all the output goroutines are
+	// done.  This must start after the wg.Add call.
+	go func() {
+		wg.Wait()
+		close(out)
+	}()
+	return out
 }
 
 func main() {
 	// Замеряем время работы программы.
 	start := time.Now()
 	fmt.Println("start (current time) = ", start)
-
-	// 277042167809
-	// 554084335617
-	//powerset, _ := producerCode.GeneratePowersetWithinBorders(277042167809, 277042167815)
-	//for index, value := range powerset {
-	//	fmt.Println("Combination #", index, " = ", value)
-	//}
-
-	//var combination producerCode.Combination
-	//
-	//combination.Conditions = append(combination.Conditions, producerCode.Condition{"Pairname", "AUD/USD"})
-	//combination.Conditions = append(combination.Conditions, producerCode.Condition{"Timeframe", "300"})
-	//
-	//fmt.Println("combination = ", combination)
-	//
-	//collection := dbFunctions.ConnectToDB()
-	//statsOfCombination := dbFunctions.GetCombinationStats(combination, collection)
-	//
-	////fmt.Println("stats = ", stats)
-	//stats.PrintStats(statsOfCombination)
 
 	/*
 		По очереди достаём все возможные значения всех возможный полей и сохраняем в отдельных массивах.
@@ -179,12 +250,6 @@ func main() {
 
 	fmt.Println("\n\n\n")
 
-	// Создаём массив, в котором будем хранить ВСЮ статистику по нашим комбинациям.
-	var resultStats []stats.Stats
-	// Подключаемся к БД и сохраняем объект подключения в переменной collection (некоторые ф-и этого
-	// проекта для работы с БД принимают на вход объект подключения, а точнее коллекции).
-	collection := dbFunctions.ConnectToDB()
-
 	/*
 		В этих циклах мы по очереди берём:
 		1. Сначала каждое название пары;
@@ -207,6 +272,11 @@ func main() {
 		 > db.stakes.find({ "TiBuy": 1, "TiSell": 9 }).count()
 		 30753
 	*/
+
+	// Создаём массив, в котором будут храниться все комбинации, статистику по которым мы хотим получить
+	var combinationsToCheck []producerCode.Combination
+
+	// Генерируем комбинации, статистику по которым мы хотим получить
 	for _, pairnameDesiredCondition := range pairnamesFromConditions {
 		for _, timeframeDesiredCondition := range timeframesFromConditions {
 			for _, maBuyDesiredCondition := range maBuysFromConditions {
@@ -215,13 +285,13 @@ func main() {
 				// Проверяем в двух случаях:
 				// 1. С tiBuy
 				for _, tiBuyDesiredCondition := range tiBuysFromConditions {
-					returnedStats := getStatsFor(collection, pairnameDesiredCondition, timeframeDesiredCondition, maBuyDesiredCondition, tiBuyDesiredCondition)
-					resultStats = append(resultStats, returnedStats)
+					combination := composeCombinationFromCondition(pairnameDesiredCondition, timeframeDesiredCondition, maBuyDesiredCondition, tiBuyDesiredCondition)
+					combinationsToCheck = append(combinationsToCheck, combination)
 				}
 				// 2. С tiSell
 				for _, tiSellDesiredCondition := range tiSellsFromConditions {
-					returnedStats := getStatsFor(collection, pairnameDesiredCondition, timeframeDesiredCondition, maBuyDesiredCondition, tiSellDesiredCondition)
-					resultStats = append(resultStats, returnedStats)
+					combination := composeCombinationFromCondition(pairnameDesiredCondition, timeframeDesiredCondition, maBuyDesiredCondition, tiSellDesiredCondition)
+					combinationsToCheck = append(combinationsToCheck, combination)
 				}
 			}
 
@@ -231,16 +301,45 @@ func main() {
 				// Проверяем в двух случаях:
 				// 1. С tiBuy
 				for _, tiBuyDesiredCondition := range tiBuysFromConditions {
-					returnedStats := getStatsFor(collection, pairnameDesiredCondition, timeframeDesiredCondition, maSellDesiredCondition, tiBuyDesiredCondition)
-					resultStats = append(resultStats, returnedStats)
+					combination := composeCombinationFromCondition(pairnameDesiredCondition, timeframeDesiredCondition, maSellDesiredCondition, tiBuyDesiredCondition)
+					combinationsToCheck = append(combinationsToCheck, combination)
 				}
 				// 2. С tiSell
 				for _, tiSellDesiredCondition := range tiSellsFromConditions {
-					returnedStats := getStatsFor(collection, pairnameDesiredCondition, timeframeDesiredCondition, maSellDesiredCondition, tiSellDesiredCondition)
-					resultStats = append(resultStats, returnedStats)
+					combination := composeCombinationFromCondition(pairnameDesiredCondition, timeframeDesiredCondition, maSellDesiredCondition, tiSellDesiredCondition)
+					combinationsToCheck = append(combinationsToCheck, combination)
 				}
 			}
 		}
+	}
+
+	/*
+		Подключаемся к БД и сохраняем объект подключения в переменной collection (некоторые ф-и этого
+		проекта для работы с БД принимают на вход объект подключения, а точнее коллекции).
+	*/
+	collection := dbFunctions.ConnectToDB()
+
+	/*
+		Создаём канал, в который будем отдавать комбинации для проверки.
+		(Из этого канала будут читать горутины.)
+	*/
+	in := generateChannelWithCombinations(combinationsToCheck)
+
+	// Distribute the sq work across two goroutines that both read from in.
+	// TODO: сделать массив из c*. Чтобы для добавления новых "worker'ов" надо было не создавать новые переменные, а
+	//  менять одно число. То есть сделать это при помощи цикла, например.
+	c1 := getStatsForCombinationsFromChannel(collection, in)
+	c2 := getStatsForCombinationsFromChannel(collection, in)
+	c3 := getStatsForCombinationsFromChannel(collection, in)
+	c4 := getStatsForCombinationsFromChannel(collection, in)
+	c5 := getStatsForCombinationsFromChannel(collection, in)
+	c6 := getStatsForCombinationsFromChannel(collection, in)
+
+	// Создаём массив, в котором будем хранить ВСЮ статистику по нашим комбинациям.
+	var resultStats []stats.Stats
+
+	for statsFromOneCombination := range mergeCombinationsFromChannels(c1, c2, c3, c4, c5, c6) {
+		resultStats = append(resultStats, statsFromOneCombination)
 	}
 
 	fmt.Println("resultStats = ", resultStats)
