@@ -133,6 +133,7 @@ func getStatsFor(collection *mongo.Collection, incomingConditions ...producerCod
 func main() {
 	// Замеряем время работы программы.
 	start := time.Now()
+	fmt.Println("start (current time) = ", start)
 
 	// 277042167809
 	// 554084335617

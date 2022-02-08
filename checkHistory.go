@@ -65,10 +65,10 @@ func topCombinationsWithinBorders(collection *mongo.Collection, lowerBorder int6
 		fmt.Println("combination.Conditions() = ", combination.Conditions)
 		stats := dbFunctions.GetCombinationStats(combination, collection)
 		fmt.Println("stats: ", stats)
-		if stats.AllRelativePercentOfStakesWhereEndPriceMoreThanInitial > 57 || stats.AllRelativePercentOfStakesWhereEndPriceMoreThanInitial < 43 {
+		if stats.PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakes > 57 || stats.PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakes < 43 {
 			topCombinationsStatsWithinPassedBorders = append(topCombinationsStatsWithinPassedBorders, stats)
 
-			if stats.AllRelativePercentOfStakesWhereEndPriceMoreThanInitial > 57 {
+			if stats.PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakes > 57 {
 				log.Fatalln("stats с винрейтом больше 57. stats = ", stats)
 				panic("паника-паника")
 			}
@@ -76,8 +76,8 @@ func topCombinationsWithinBorders(collection *mongo.Collection, lowerBorder int6
 			// TODO: Из-за такой сортировки все значения с топовым "ПОЛОЖИТЕЛЬНЫМ" винрейтом (то есть когда больше 57%,
 			// 	а не меньше 43) не входят в финальный список. Или я это уже исправил?
 			sort.SliceStable(topCombinationsStatsWithinPassedBorders, func(i, j int) bool {
-				firstValue := topCombinationsStatsWithinPassedBorders[i].AllRelativePercentOfStakesWhereEndPriceMoreThanInitial
-				secondValue := topCombinationsStatsWithinPassedBorders[j].AllRelativePercentOfStakesWhereEndPriceMoreThanInitial
+				firstValue := topCombinationsStatsWithinPassedBorders[i].PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakes
+				secondValue := topCombinationsStatsWithinPassedBorders[j].PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakes
 				// Просто значение, чтобы в выражении в 2 местах стояла переменная.
 				fifty := 50.0
 				/*
@@ -143,8 +143,8 @@ func main() {
 		// #1. Сначала оставляем в topStats только лучшие 20 значений
 		// TODO: Дублирование кода
 		sort.SliceStable(topStats, func(i, j int) bool {
-			firstValue := topStats[i].AllRelativePercentOfStakesWhereEndPriceMoreThanInitial
-			secondValue := topStats[j].AllRelativePercentOfStakesWhereEndPriceMoreThanInitial
+			firstValue := topStats[i].PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakes
+			secondValue := topStats[j].PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakes
 			// Просто значение, чтобы в выражении в 2 местах стояла переменная.
 			fifty := 50.0
 			/*
@@ -167,8 +167,8 @@ func main() {
 		// #3. Затем сортируем topCombinationsStats и оставляем лучшие 20 значений
 		// TODO: дублирование кода
 		sort.SliceStable(topCombinationsStats, func(i, j int) bool {
-			firstValue := topCombinationsStats[i].AllRelativePercentOfStakesWhereEndPriceMoreThanInitial
-			secondValue := topCombinationsStats[j].AllRelativePercentOfStakesWhereEndPriceMoreThanInitial
+			firstValue := topCombinationsStats[i].PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakes
+			secondValue := topCombinationsStats[j].PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakes
 			// Просто значение, чтобы в выражении в 2 местах стояла переменная.
 			fifty := 50.0
 			/*

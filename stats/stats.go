@@ -15,23 +15,23 @@ type Stats struct {
 	Combination producerCode.Combination
 	StakesAtAll int64
 	// Кол-во ставок и винрейт относительно всех абсолютно всех ставок
-	AllRelativeStakesWhereEndPriceMoreThanInitialCount     int64
-	AllRelativePercentOfStakesWhereEndPriceMoreThanInitial float64
+	StakesWhereEndPriceMoreThanInitialCount                        int64
+	PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakes float64
 	// Кол-во ставок и винрейт относительно всех ставок ЗА ИСКЛЮЧЕНИЕМ ставок, где
 	// endPriceMoreThanInitial = 0
-	WithoutZeroRelativeStakesWhereEndPriceMoreThanInitialCount     int64
-	WithoutZeroRelativePercentOfStakesWhereEndPriceMoreThanInitial float64
+	StakesCountWhereEndPriceNotZero                                                    int64
+	PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakesWhereEndPriceNotZero float64
 	// Кол-во ставок и винрейт относительно всех ставок ЗА ИСКЛЮЧЕНИЕМ ставок, где
 	// endPriceMoreThanInitial = 0 и при этом endPriceMoreThanInitial существует
-	ExistsAndWithoutZeroRelativeStakesWhereEndPriceMoreThanInitialCount     int64
-	ExistsAndWithoutZeroRelativePercentOfStakesWhereEndPriceMoreThanInitial float64
+	StakesWhereEndPriceMoreThanInitialCountNotZeroAndExists                                     int64
+	PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakesWhereEndPriceNotZeroAndExists float64
 }
 
 // ByAge implements sort.Interface based on the Age field.
 //type ByPercent []Stats
 //
 //func (statsArray ByPercent) Len() int           { return len(statsArray) }
-//func (statsArray ByPercent) Less(i, j int) bool { return statsArray[i].AllRelativePercentOfStakesWhereEndPriceMoreThanInitial < statsArray[j].AllRelativePercentOfStakesWhereEndPriceMoreThanInitial }
+//func (statsArray ByPercent) Less(i, j int) bool { return statsArray[i].PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakes < statsArray[j].PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakes }
 //func (statsArray ByPercent) Swap(i, j int)      { statsArray[i], statsArray[j] = statsArray[j], statsArray[i] }
 
 /*
@@ -54,9 +54,17 @@ func ConditionsAsString(incomingStats Stats) string {
 */
 func StatsAsPrettyString(incomingStats Stats) string {
 	stringToReturn := "Combination: " + ConditionsAsString(incomingStats) + "\nStakes at all: " + strconv.FormatInt(incomingStats.StakesAtAll, 10) +
-		"\nStakes where end price more than initial: " + strconv.FormatInt(incomingStats.AllRelativeStakesWhereEndPriceMoreThanInitialCount, 10) +
-		"\nPercent of stakes where end price more than initial: " +
-		fmt.Sprintf("%f", incomingStats.AllRelativePercentOfStakesWhereEndPriceMoreThanInitial)
+		"\nStakes where end price more than initial: " + strconv.FormatInt(incomingStats.StakesWhereEndPriceMoreThanInitialCount, 10) +
+		"\nPercent of stakes where end price more than initial relative to all stakes: " +
+		fmt.Sprintf("%f", incomingStats.PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakes) +
+		"\nStakes where end price more than initial and not 0: " +
+		strconv.FormatInt(incomingStats.StakesCountWhereEndPriceNotZero, 10) +
+		"\nPercent of stakes where end price more than initial relative to all stakes where endPriceMoreThanInitial not 0: " +
+		fmt.Sprintf("%f", incomingStats.PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakesWhereEndPriceNotZero) +
+		"\nStakes where end price more than initial and not 0 and exists: " +
+		strconv.FormatInt(incomingStats.StakesWhereEndPriceMoreThanInitialCountNotZeroAndExists, 10) +
+		"\nPercent of stakes where end price more than initial relative to all stakes where endPriceMoreThanInitial not 0 and exists: " +
+		fmt.Sprintf("%f", incomingStats.PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakesWhereEndPriceNotZeroAndExists)
 
 	return stringToReturn
 }
