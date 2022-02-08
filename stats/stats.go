@@ -21,6 +21,10 @@ type Stats struct {
 	// endPriceMoreThanInitial = 0
 	WithoutZeroRelativeStakesWhereEndPriceMoreThanInitialCount     int64
 	WithoutZeroRelativePercentOfStakesWhereEndPriceMoreThanInitial float64
+	// Кол-во ставок и винрейт относительно всех ставок ЗА ИСКЛЮЧЕНИЕМ ставок, где
+	// endPriceMoreThanInitial = 0 и при этом endPriceMoreThanInitial существует
+	ExistsAndWithoutZeroRelativeStakesWhereEndPriceMoreThanInitialCount     int64
+	ExistsAndWithoutZeroRelativePercentOfStakesWhereEndPriceMoreThanInitial float64
 }
 
 // ByAge implements sort.Interface based on the Age field.
