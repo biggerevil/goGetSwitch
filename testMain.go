@@ -129,7 +129,7 @@ func getStatsFor(collection *mongo.Collection, incomingCombination producerCode.
 	//	combination.Conditions = append(combination.Conditions, producerCode.Condition{ColumnName: condition.ColumnName, Value: condition.Value})
 	//}
 	statsOfCombination := dbFunctions.GetCombinationStats(incomingCombination, collection)
-	fmt.Println(stats.StatsAsPrettyString(statsOfCombination))
+	//fmt.Println(stats.StatsAsPrettyString(statsOfCombination))
 
 	return statsOfCombination
 }
@@ -338,7 +338,9 @@ func main() {
 	// Создаём массив, в котором будем хранить ВСЮ статистику по нашим комбинациям.
 	var resultStats []stats.Stats
 
+	// Получаем всю статистику от "worker'ов" и добавляем в массив со всей статистикой.
 	for statsFromOneCombination := range mergeCombinationsFromChannels(c1, c2, c3, c4, c5, c6) {
+		fmt.Println("Добавляю:\n", stats.StatsAsPrettyString(statsFromOneCombination), "\n\n")
 		resultStats = append(resultStats, statsFromOneCombination)
 	}
 
@@ -363,6 +365,7 @@ func main() {
 	for _, resultingStats := range resultStats {
 		// Получаем string со статистикой.
 		stringToWriteDown := stats.StatsAsPrettyString(resultingStats)
+		stringToWriteDown += "\n\n\n"
 		// Записываем в файл.
 		_, err2 := f.WriteString(stringToWriteDown)
 		if err2 != nil {

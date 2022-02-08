@@ -86,7 +86,7 @@ func GetCombinationStats(combination producerCode.Combination, collection *mongo
 
 	filter := makeFilter(combination)
 
-	fmt.Println("filter = ", filter)
+	//fmt.Println("filter = ", filter)
 
 	// Запрос без фильтров (при нежелании использовать какой-либо фильтр надо передавать
 	// bson.D{{}}, а не nil, иначе будет ошибка)
@@ -112,10 +112,10 @@ func GetCombinationStats(combination producerCode.Combination, collection *mongo
 		log.Fatalln("err = ", err)
 	}
 
-	fmt.Println("stakesCount = ", stakesCount)
-	fmt.Println("stakesWhereEndPriceMoreThanInitialCount = ", stakesWhereEndPriceMoreThanInitialCount)
+	//fmt.Println("stakesCount = ", stakesCount)
+	//fmt.Println("stakesWhereEndPriceMoreThanInitialCount = ", stakesWhereEndPriceMoreThanInitialCount)
 	percentOfStakesWhereEndPriceMoreThanInitial := (float64(stakesWhereEndPriceMoreThanInitialCount) / float64(stakesCount)) * 100
-	fmt.Printf("priceMore / allStakes = %.1f\n", percentOfStakesWhereEndPriceMoreThanInitial)
+	//fmt.Printf("priceMore / allStakes = %.1f\n", percentOfStakesWhereEndPriceMoreThanInitial)
 
 	// Считаем кол-во ставок и винрейт относительно ВСЕХ ставок, ЗА ИСКЛЮЧЕНИЕМ ставок, где endPriceMoreThanInitial = 0
 	filterEndPriceNotZero := filter
@@ -125,11 +125,11 @@ func GetCombinationStats(combination producerCode.Combination, collection *mongo
 		log.Fatalln("err = ", err)
 	}
 
-	fmt.Println("stakesCount = ", stakesCount)
-	fmt.Println("stakesCountWhereEndPriceNotZero = ", stakesCountWhereEndPriceNotZero)
-	fmt.Println("stakesWhereEndPriceMoreThanInitialCount = ", stakesWhereEndPriceMoreThanInitialCount)
+	//fmt.Println("stakesCount = ", stakesCount)
+	//fmt.Println("stakesCountWhereEndPriceNotZero = ", stakesCountWhereEndPriceNotZero)
+	//fmt.Println("stakesWhereEndPriceMoreThanInitialCount = ", stakesWhereEndPriceMoreThanInitialCount)
 	percentOfStakesWhereEndPriceMoreThanInitialAndNotZero := (float64(stakesWhereEndPriceMoreThanInitialCount) / float64(stakesCountWhereEndPriceNotZero)) * 100
-	fmt.Printf("priceMore / allStakesEndPriceNotZero = %.1f\n", percentOfStakesWhereEndPriceMoreThanInitialAndNotZero)
+	//fmt.Printf("priceMore / allStakesEndPriceNotZero = %.1f\n", percentOfStakesWhereEndPriceMoreThanInitialAndNotZero)
 
 	// Считаем кол-во ставок и винрейт относительно ВСЕХ ставок, ЗА ИСКЛЮЧЕНИЕМ ставок, где endPriceMoreThanInitial = 0
 	// и endPriceMoreThanInitial существует - у некоторых ставок (например, тех, что ещё не закончились) поле
@@ -141,11 +141,11 @@ func GetCombinationStats(combination producerCode.Combination, collection *mongo
 		log.Fatalln("err = ", err)
 	}
 
-	fmt.Println("stakesCount = ", stakesCount)
-	fmt.Println("stakesCountWhereEndPriceNotZeroAndExists = ", stakesCountWhereEndPriceNotZeroAndExists)
-	fmt.Println("stakesWhereEndPriceMoreThanInitialCount = ", stakesWhereEndPriceMoreThanInitialCount)
+	//fmt.Println("stakesCount = ", stakesCount)
+	//fmt.Println("stakesCountWhereEndPriceNotZeroAndExists = ", stakesCountWhereEndPriceNotZeroAndExists)
+	//fmt.Println("stakesWhereEndPriceMoreThanInitialCount = ", stakesWhereEndPriceMoreThanInitialCount)
 	percentOfStakesWhereEndPriceMoreThanInitialNotZeroAndExists := (float64(stakesWhereEndPriceMoreThanInitialCount) / float64(stakesCountWhereEndPriceNotZeroAndExists)) * 100
-	fmt.Printf("priceMore / allStakesEndPriceNotZeroAndExists = %.1f\n", percentOfStakesWhereEndPriceMoreThanInitialNotZeroAndExists)
+	//fmt.Printf("priceMore / allStakesEndPriceNotZeroAndExists = %.1f\n", percentOfStakesWhereEndPriceMoreThanInitialNotZeroAndExists)
 
 	//stats := make(map[string]interface{})
 	//stats["Combination"] = combination
