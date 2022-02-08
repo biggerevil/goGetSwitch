@@ -55,15 +55,15 @@ func ConditionsAsString(incomingStats Stats) string {
 func StatsAsPrettyString(incomingStats Stats) string {
 	stringToReturn := "Combination: " + ConditionsAsString(incomingStats) + "\nStakes at all:\n" + strconv.FormatInt(incomingStats.StakesAtAll, 10) +
 		"\nStakes where end price more than initial:\n" + strconv.FormatInt(incomingStats.StakesWhereEndPriceMoreThanInitialCount, 10) +
-		"\nPercent of stakes where end price more than initial relative to all stakes:\n" +
+		"\nPercent of stakes where end price more than initial relative to all stakes:\n\t" +
 		fmt.Sprintf("%f", incomingStats.PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakes) +
 		"\nStakes where end price more than initial and not 0:\n" +
 		strconv.FormatInt(incomingStats.StakesCountWhereEndPriceNotZero, 10) +
-		"\nPercent of stakes where end price more than initial relative to all stakes where endPriceMoreThanInitial not 0:\n" +
+		"\nPercent of stakes where end price more than initial relative to all stakes where endPriceMoreThanInitial not 0:\n\t" +
 		fmt.Sprintf("%f", incomingStats.PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakesWhereEndPriceNotZero) +
 		"\nStakes where end price more than initial and not 0 and exists:\n" +
 		strconv.FormatInt(incomingStats.StakesWhereEndPriceMoreThanInitialCountNotZeroAndExists, 10) +
-		"\nPercent of stakes where end price more than initial relative to all stakes where endPriceMoreThanInitial not 0 and exists:\n" +
+		"\nPercent of stakes where end price more than initial relative to all stakes where endPriceMoreThanInitial not 0 and exists:\n\t" +
 		fmt.Sprintf("%f", incomingStats.PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakesWhereEndPriceNotZeroAndExists)
 
 	return stringToReturn
