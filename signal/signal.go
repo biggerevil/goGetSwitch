@@ -49,7 +49,8 @@ func SignalDataInOneStringWithComments(signal Signal) string {
 		" , CurrentPrice: " + fmt.Sprintf("%f", signal.CurrentPrice) +
 		" , StartUnixTimestamp: " + fmt.Sprintf("%v", signal.StartUnixTimestamp) +
 		" , EndUnixTimestamp: " + fmt.Sprintf("%v", signal.EndUnixTimestamp) +
-		" , Timeframe: " + fmt.Sprintf("%v", signal.Timeframe)
+		" , Timeframe: " + fmt.Sprintf("%v", signal.Timeframe) +
+		", ID: " + signal.ID.String()
 
 	return stringToReturn
 }
