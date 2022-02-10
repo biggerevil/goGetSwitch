@@ -2,10 +2,7 @@ module goGetSwitch
 
 go 1.17
 
-require (
-	github.com/deckarep/golang-set v1.8.0
-	go.mongodb.org/mongo-driver v1.8.1
-)
+require go.mongodb.org/mongo-driver v1.8.1
 
 require (
 	github.com/go-stack/stack v1.8.0 // indirect

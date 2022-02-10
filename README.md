@@ -1,6 +1,6 @@
 # goGetSwitch
 
-## Дата обновления: 30 декабря 2021
+## Дата обновления: 8 февраля 2021
 
 ### Настройка
 
@@ -30,7 +30,7 @@ systemctl enable mongodb.service
 systemctl status mongodb.service
 ```
 
-Установка Go (после add-apt-repostory надо будет нажать enter):
+Установка Go (во время add-apt-repostory надо будет нажать enter):
 ```
 sudo add-apt-repository ppa:longsleep/golang-backports
 sudo apt -y install golang
