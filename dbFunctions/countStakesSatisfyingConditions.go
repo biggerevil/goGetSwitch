@@ -84,7 +84,7 @@ func GetCombinationStats(combination producerCode.Combination, collection *mongo
 	//	"Timeframe": bson.M{"$in": timeframeArray},
 	//}
 
-	filter := makeFilter(combination)
+	filter := MakeFilter(combination)
 
 	//fmt.Println("filter = ", filter)
 
@@ -173,7 +173,7 @@ func GetCombinationStats(combination producerCode.Combination, collection *mongo
 	Эта функция принимает на вход комбинацию и возвращает filter для MongoDB.
 	При помощи этого фильтра можно будет достать из БД только те ставки, которые подходят под эту комбинацию.
 */
-func makeFilter(combination producerCode.Combination) bson.M {
+func MakeFilter(combination producerCode.Combination) bson.M {
 	// 1. Сначала мы по очереди достаём из комбинации все пары, все таймфреймы, все индикаторы.
 	pairnames := getPairnamesFromCombination(combination)
 	timeframes := getTimeframesFromCombination(combination)
@@ -182,8 +182,8 @@ func makeFilter(combination producerCode.Combination) bson.M {
 	tiBuys := getIndicatorFromCombination(combination, tiBuyColumnName)
 	tiSells := getIndicatorFromCombination(combination, tiSellColumnName)
 
-	//fmt.Println("[makeFilter] pairnames = ", pairnames)
-	//fmt.Println("[makeFilter] timeframes = ", timeframes)
+	//fmt.Println("[MakeFilter] pairnames = ", pairnames)
+	//fmt.Println("[MakeFilter] timeframes = ", timeframes)
 
 	// 2. Затем мы создаём фильтр (который в итоге вернём), в который будем
 	// добавлять условия (Condition) из комбинации (Combination).
