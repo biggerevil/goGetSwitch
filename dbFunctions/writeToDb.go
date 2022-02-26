@@ -14,7 +14,7 @@ import (
 // Connection URI
 const uri = "mongodb://localhost"
 
-func WriteData(allNewSignals []signal.Signal) {
+func WriteNewSignalsToDB(allNewSignals []signal.Signal) {
 	// Create a new client and connect to the server
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 
@@ -22,7 +22,7 @@ func WriteData(allNewSignals []signal.Signal) {
 	if err != nil {
 		panic(err)
 	}
-	// Пишем, что произойдёт, когда ф-я WriteData закончится
+	// Пишем, что произойдёт, когда ф-я WriteNewSignalsToDB закончится
 	defer func() {
 		// Отключаемся от mongo
 		if err = client.Disconnect(context.TODO()); err != nil {
@@ -65,7 +65,7 @@ func WriteData(allNewSignals []signal.Signal) {
 
 	// Вызываем саму функцию InsertMany, то есть добавляем все новые сигналы в БД.
 	// (Эту функцию писал не я, она идёт от разработчиков библиотеки для работы с mongo)
-	log.Println("[WriteData] Собираюсь позвать InsertMany")
+	log.Println("[WriteNewSignalsToDB] Собираюсь позвать InsertMany")
 	result, err := coll.InsertMany(context.TODO(), docs)
 	// (Заметь, что результат работы InsertMany сохраняется в переменной result)
 

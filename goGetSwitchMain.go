@@ -83,10 +83,10 @@ func main() {
 
 	fmt.Println("len(allNewSignals) = ", len(allNewSignals))
 
-	log.Println("Собираюсь позвать dbFunctions.WriteData")
+	log.Println("Собираюсь позвать dbFunctions.WriteNewSignalsToDB")
 	// Записываем данные в БД.
-	dbFunctions.WriteData(allNewSignals)
-	log.Println("Закончил с вызовом dbFunctions.WriteData")
+	dbFunctions.WriteNewSignalsToDB(allNewSignals)
+	log.Println("Закончил с вызовом dbFunctions.WriteNewSignalsToDB")
 
 	// Добавляем к "заканчивающимся" ставкам конечную цену
 	// и информацию, больше ли конечная цена, чем начальная
