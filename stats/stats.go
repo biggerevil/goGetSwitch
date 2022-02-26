@@ -25,6 +25,8 @@ type Stats struct {
 	// endPriceMoreThanInitial = 0 и при этом endPriceMoreThanInitial существует
 	StakesWhereEndPriceMoreThanInitialCountNotZeroAndExists                                     int64
 	PercentOfStakesWhereEndPriceMoreThanInitialRelativeToAllStakesWhereEndPriceNotZeroAndExists float64
+	// Дата, когда посчитана статистика. Может пригодиться потом
+	DateOfResults string
 }
 
 // ByAge implements sort.Interface based on the Age field.

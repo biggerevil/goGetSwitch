@@ -6,10 +6,7 @@ import (
 	"goGetSwitch/dbFunctions"
 	"goGetSwitch/producerCode"
 	"goGetSwitch/stats"
-	"log"
-	"os"
 	"runtime"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -183,6 +180,8 @@ func getStatsForCombinationsFromChannel(collection *mongo.Collection, in <-chan 
 		for combinationFromChannel := range in {
 			//fmt.Println(goid(), " работает")
 			returnedStats := getStatsFor(collection, combinationFromChannel)
+			// Добавляем текущую дату, когда посчитана статистика.
+			returnedStats.DateOfResults = time.Now().Format("2006-01-02")
 			out <- returnedStats
 		}
 		close(out)
@@ -278,39 +277,39 @@ func main() {
 
 	// Генерируем комбинации, статистику по которым мы хотим получить
 	for _, pairnameDesiredCondition := range pairnamesFromConditions {
-		for _, timeframeDesiredCondition := range timeframesFromConditions {
-			for _, maBuyDesiredCondition := range maBuysFromConditions {
-				// На данный момент имеем pairname, timeframe и maBuy.
+		//for _, timeframeDesiredCondition := range timeframesFromConditions {
+		//	for _, maBuyDesiredCondition := range maBuysFromConditions {
+		//		// На данный момент имеем pairname, timeframe и maBuy.
+		//
+		//		// Проверяем в двух случаях:
+		//		// 1. С tiBuy
+		//		for _, tiBuyDesiredCondition := range tiBuysFromConditions {
+		combination := composeCombinationFromCondition(pairnameDesiredCondition)
+		combinationsToCheck = append(combinationsToCheck, combination)
+		//	}
+		//	// 2. С tiSell
+		//	for _, tiSellDesiredCondition := range tiSellsFromConditions {
+		//		combination := composeCombinationFromCondition(pairnameDesiredCondition, timeframeDesiredCondition, maBuyDesiredCondition, tiSellDesiredCondition)
+		//		combinationsToCheck = append(combinationsToCheck, combination)
+		//	}
+		//}
 
-				// Проверяем в двух случаях:
-				// 1. С tiBuy
-				for _, tiBuyDesiredCondition := range tiBuysFromConditions {
-					combination := composeCombinationFromCondition(pairnameDesiredCondition, timeframeDesiredCondition, maBuyDesiredCondition, tiBuyDesiredCondition)
-					combinationsToCheck = append(combinationsToCheck, combination)
-				}
-				// 2. С tiSell
-				for _, tiSellDesiredCondition := range tiSellsFromConditions {
-					combination := composeCombinationFromCondition(pairnameDesiredCondition, timeframeDesiredCondition, maBuyDesiredCondition, tiSellDesiredCondition)
-					combinationsToCheck = append(combinationsToCheck, combination)
-				}
-			}
-
-			for _, maSellDesiredCondition := range maSellsFromConditions {
-				// На данный момент имеем pairname, timeframe и maSell.
-
-				// Проверяем в двух случаях:
-				// 1. С tiBuy
-				for _, tiBuyDesiredCondition := range tiBuysFromConditions {
-					combination := composeCombinationFromCondition(pairnameDesiredCondition, timeframeDesiredCondition, maSellDesiredCondition, tiBuyDesiredCondition)
-					combinationsToCheck = append(combinationsToCheck, combination)
-				}
-				// 2. С tiSell
-				for _, tiSellDesiredCondition := range tiSellsFromConditions {
-					combination := composeCombinationFromCondition(pairnameDesiredCondition, timeframeDesiredCondition, maSellDesiredCondition, tiSellDesiredCondition)
-					combinationsToCheck = append(combinationsToCheck, combination)
-				}
-			}
-		}
+		//	for _, maSellDesiredCondition := range maSellsFromConditions {
+		//		// На данный момент имеем pairname, timeframe и maSell.
+		//
+		//		// Проверяем в двух случаях:
+		//		// 1. С tiBuy
+		//		for _, tiBuyDesiredCondition := range tiBuysFromConditions {
+		//			combination := composeCombinationFromCondition(pairnameDesiredCondition, timeframeDesiredCondition, maSellDesiredCondition, tiBuyDesiredCondition)
+		//			combinationsToCheck = append(combinationsToCheck, combination)
+		//		}
+		//		// 2. С tiSell
+		//		for _, tiSellDesiredCondition := range tiSellsFromConditions {
+		//			combination := composeCombinationFromCondition(pairnameDesiredCondition, timeframeDesiredCondition, maSellDesiredCondition, tiSellDesiredCondition)
+		//			combinationsToCheck = append(combinationsToCheck, combination)
+		//		}
+		//	}
+		//}
 	}
 
 	/*
@@ -345,30 +344,32 @@ func main() {
 	fmt.Println("resultStats = ", resultStats)
 	fmt.Println("len(resultStats) = ", len(resultStats))
 
-	// Сортируем массив со всей статистикой по кол-ву ставок комбинации.
-	sort.Slice(resultStats, func(i, j int) bool {
-		return resultStats[i].StakesAtAll > resultStats[j].StakesAtAll
-	})
+	dbFunctions.WriteCombinationStatsToDB(resultStats)
 
-	// Создаём файл, чтобы записать в него данные.
-	f, err := os.Create("resultingStats.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Указываем, что при завершении main() мы хотим закрыть этот файл.
-	defer f.Close()
-
-	// Итерируемся по всей статистике и записываем в файл.
-	for _, resultingStats := range resultStats {
-		// Получаем string со статистикой.
-		stringToWriteDown := stats.StatsAsPrettyString(resultingStats)
-		// Записываем в файл.
-		_, err2 := f.WriteString(stringToWriteDown)
-		if err2 != nil {
-			log.Fatal(err2)
-		}
-	}
+	//// Сортируем массив со всей статистикой по кол-ву ставок комбинации.
+	//sort.Slice(resultStats, func(i, j int) bool {
+	//	return resultStats[i].StakesAtAll > resultStats[j].StakesAtAll
+	//})
+	//
+	//// Создаём файл, чтобы записать в него данные.
+	//f, err := os.Create("resultingStats.txt")
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//
+	//// Указываем, что при завершении main() мы хотим закрыть этот файл.
+	//defer f.Close()
+	//
+	//// Итерируемся по всей статистике и записываем в файл.
+	//for _, resultingStats := range resultStats {
+	//	// Получаем string со статистикой.
+	//	stringToWriteDown := stats.StatsAsPrettyString(resultingStats)
+	//	// Записываем в файл.
+	//	_, err2 := f.WriteString(stringToWriteDown)
+	//	if err2 != nil {
+	//		log.Fatal(err2)
+	//	}
+	//}
 
 	// Заканчиваем замер времени работы программы и выводим эту информацию.
 	elapsed := time.Since(start)
