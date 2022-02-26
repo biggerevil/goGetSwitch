@@ -58,7 +58,7 @@ func addStartDateStringToStakesWithoutIt() {
 	//fmt.Println("unixTimestamp = ", unixTimestamp)
 	//formattedDateFromUnixTimestamp(unixTimestamp)
 
-	collection := dbFunctions.ConnectToDB()
+	collection := dbFunctions.ConnectToDB("stakes")
 
 	filter := bson.D{{"StartDateString", nil}}
 
@@ -109,7 +109,7 @@ func composeCombinationFromCondition(incomingConditions ...producerCode.Conditio
 }
 
 func getEarliestAndLatestSignalsDates() (int64, int64) {
-	collection := dbFunctions.ConnectToDB()
+	collection := dbFunctions.ConnectToDB("stakes")
 
 	//filter := bson.D{{"", nil}}
 
@@ -208,7 +208,7 @@ func getResultKoeff(stakesAtDays map[string]float64, totalAmountOfDays float64) 
 }
 
 func getKoeffForCombination(incomingCombination producerCode.Combination, totalAmountOfDays float64) float64 {
-	collection := dbFunctions.ConnectToDB()
+	collection := dbFunctions.ConnectToDB("stakes")
 
 	filter := dbFunctions.MakeFilter(incomingCombination)
 

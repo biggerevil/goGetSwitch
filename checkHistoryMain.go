@@ -106,7 +106,7 @@ func topCombinationsWithinBorders(collection *mongo.Collection, lowerBorder int6
 func main() {
 	start := time.Now()
 
-	collection := dbFunctions.ConnectToDB()
+	collection := dbFunctions.ConnectToDB("stakes")
 	channelForGettingTopStats := make(chan []stats.Stats)
 
 	var numberOfGoroutines int64

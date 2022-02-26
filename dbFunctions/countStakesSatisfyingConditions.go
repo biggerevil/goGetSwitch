@@ -24,7 +24,7 @@ const tiSellColumnName = "TiSell"
 	Это отдельная функция, которая подключается к БД и возвращает коллекцию.
 	Вынес это в отдельную ф-ю, чтобы не писать такой код в начале каждой ф-и, которой надо подключиться к БД.
 */
-func ConnectToDB() *mongo.Collection {
+func ConnectToDB(collectionName string) *mongo.Collection {
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 
 	if err != nil {
@@ -40,7 +40,7 @@ func ConnectToDB() *mongo.Collection {
 
 	fmt.Println("Successfully connected and pinged.")
 
-	collection := client.Database("history_stakes").Collection("stakes")
+	collection := client.Database("history_stakes").Collection(collectionName)
 
 	return collection
 }
