@@ -6,7 +6,6 @@ import (
 	"goGetSwitch/getAndParseData"
 	"goGetSwitch/signal"
 	"log"
-	"sync"
 	"time"
 )
 
@@ -16,9 +15,7 @@ import (
 //	Fruits []string
 //}
 
-func dataGetterAndParser(baseUrl string, timeframe string, unixTimestamp int64, wg *sync.WaitGroup, channelForSendingSignalsArrays chan []signal.Signal) {
-	defer wg.Done()
-
+func dataGetterAndParser(baseUrl string, timeframe string, unixTimestamp int64, channelForSendingSignalsArrays chan []signal.Signal) {
 	newSignalsForThisTimeframe := getAndParseData.GetAndParseData(baseUrl, timeframe, unixTimestamp)
 
 	// TODO: при наличии ошибки я могу возвращать эту ошибку (и впоследствии выводить её и продолжать работу)
@@ -29,12 +26,6 @@ func dataGetterAndParser(baseUrl string, timeframe string, unixTimestamp int64, 
 func main() {
 	// Замеряем время работы программы.
 	start := time.Now()
-
-	// Для ожидания завершения горутин
-	// TODO: с добавлением каналов это по идее уже не очень нужно.
-	//  Наверное, стоит делать разработку в отдельной ветке, и написать там много тестов, чтобы быть более спокойными,
-	//  что мы ничего не сломали.
-	var wg sync.WaitGroup
 
 	// Это базовая ссылка, с которой мы получаем данные (эти данные потом записываем в БД).
 	// К этой ссылке нужно только добавить время, на которое мы хотим получить
@@ -62,8 +53,7 @@ func main() {
 
 	// Запускаем горутины со всеми timeframe (время ставки)
 	for _, timeframe := range timeframes {
-		wg.Add(1)
-		go dataGetterAndParser(baseUrl, timeframe, currentUnixTimestamp, &wg, channelForGettingSignalsArray)
+		go dataGetterAndParser(baseUrl, timeframe, currentUnixTimestamp, channelForGettingSignalsArray)
 	}
 
 	// Получение данных из канала и добавление их в массив всех новых сигналов
@@ -76,10 +66,6 @@ func main() {
 		allNewSignals = append(allNewSignals, newSignals...)
 		fmt.Println("[While working] len(allNewSignals) = ", len(allNewSignals))
 	}
-
-	// Ждём окончания работы всех горутин (этот код написал ДО использования каналов). Возможно,
-	// этот код уже не нужен
-	wg.Wait()
 
 	fmt.Println("len(allNewSignals) = ", len(allNewSignals))
 
